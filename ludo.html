@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Ludo</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="">
+        <style>
+            .container{
+                
+                width: 100%;
+                
+            }
+            .box{
+                width:60px;
+                height: 60px;
+                border: 2px solid #eee;
+                float: left;
+                margin: 5px;
+            }
+            .button{
+                clear: both;
+            }
+            .pin{
+                width: 30px;
+                height: 30px;
+                border: 2px solid #fff;
+                border-radius: 50px;
+                background: red;
+                margin: 15px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div id="A1" class="box"></div>
+            <div id="A2" class="box"></div>
+            <div id="A3" class="box"></div>
+            <div id="A4" class="box"></div>
+            <div id="A5" class="box"></div>
+            <div id="A6" class="box"></div>
+            <div id="A7" class="box"></div>
+            <div id="A8" class="box"></div>
+            <div id="A9" class="box"></div>
+            <div id="A10" class="box"></div>
+            <div id="A11" class="box"></div>
+            <div id="A12" class="box"></div>
+            
+            <div style="clear: both"></div>
+            <div id="B1" class="box"></div>
+            <div id="B2" class="box"></div>
+            <div id="B3" class="box"></div>
+            <div id="B4" class="box"></div>
+            <div id="B5" class="box"></div>
+            <div id="B6" class="box"></div>
+            <div id="B7" class="box"></div>
+            <div id="B8" class="box"></div>
+            <div id="B9" class="box"></div>
+            <div id="B10" class="box"></div>
+            <div id="B11" class="box"></div>
+            <div id="B12" class="box"></div>
+        </div>
+        <div class="button">
+            <button id="roll">Roll</button>
+        </div>
+        
+
+    </body>
+</html>
+<script src="scripts/jquery-3.4.1.js"></script>
+<script>
+//let a = prompt("Enter a");
+//let b = prompt("Enter b");
+///alert(Math.floor(a/b));
+    let bases = ["A", "B"];
+    let current_p = 0;
+    let current_b = bases[0];
+$("#roll").click(function(){
+    
+    let die1 = Math.floor(Math.random() * 5) + 1;
+    let die2 = Math.floor(Math.random() * 5) + 1;
+    let container = $(".container");
+    let holder = container.children().children(".pin");
+    
+    let current_box_id = holder.length == 0 ? 0 : parseInt(holder.parent().attr("id").replace("#").substring(1));
+    
+    // current box on the board logic
+    let current = isNaN(current_box_id) ? 0 : current_box_id;
+    let current_base = (current_box_id == 0) ? bases[0] : holder.parent().attr("id").replace("#").substring(0,1);
+    let pin = "<div class='pin'></div>";
+    
+    console.log("Total of Dice: " + (die1 + die2));
+    let res = move(current, die1, die2, container, pin, current_base, 12, bases.length);
+    console.log(res.current, res.base);
+    current = res.current;
+    current_base = res.base;
+	//ui_move(res);
+
+    //console.log("Second Die");
+    //res = move(current, die2, container, pin, current_base, 12, bases.length);
+    //console.log(res.current, res.base);
+    //current = res.current;
+    //current_base = res.base;
+
+});
+
+function ui_move(pin, container, current, dice_value, no_per_base, current_base, no_of_bases)
+{
+    //use interval to move pin ".pin"
+    //current point on the board
+    let point = current;
+    //current base
+    let base = current_base;
+    //next base
+    let next_base = (bases.indexOf(base) + 1);
+
+    let movement = setInterval(() => {
+	//if current point is equal to old point + dice value then movement is complete
+        if (point == (current + dice_value))
+        {
+            clearInterval(movement);
+        }
+        else{
+            if (point > no_per_base){
+                container.children("#" + base + (point)).find(pin).remove();
+                point = 1;
+                if (next_base >= bases.length)
+                {
+                    //completed movement
+                    base = bases[base.length - 1];
+                }
+                else
+                {
+                    base = bases[next_base];
+                }
+            }
+
+            if(point == 0)
+            {
+                //if point is zero start moving on the board
+                container.children("#" + base + (1)).html(pin);
+            }
+            else
+            {
+                container.children("#" + base + (point)).find(pin).remove();
+                container.children("#" + base + (point + 1)).html(pin);
+            }
+            
+            point++;
+            console.log("current point " + point);
+            console.log("moiving..");
+        }
+    }, 300);
+}
+
+function move(current, die1, die2, container, pin, current_base, no_per_base, no_of_bases){
+    
+    //move pin based on dice roll
+    console.log("Rolled die1: " + die1 + " die2: " + die2);
+    console.log("Moving to box " + ( current + die1 + die2 ) + "");
+    console.log("current base " + current_base);
+
+    //total travel distance for pin
+    let total_travel_distance = die1 + die2;
+    //current point on the board
+    let point = current;
+    //current base
+    let base = current_base;
+    //next base
+    let next_base = (bases.indexOf(base) + 1);
+    alert(JSON.stringify(convert("B6", undefined, 12, bases)));
+    while(point <= (current + total_travel_distance)){
+		
+		point++;
+	}
+    
+    return {current: point, base: base} ;
+}
+
+function convert(box_id="A0", box_no=0, no_per_base, all_base)
+{
+	let base = box_id.replace("#","").substring(0,1);
+	let point = box_no === 0 ? box_id.replace("#","").substring(1) : box_no;
+	console.log(box_no);
+	
+	if (box_id !== "A0")
+	{
+		//use box id to calculate point in board logic
+		//formula (IndexOfBase * NoPerBase) + point
+		return {box_point: ((all_base.indexOf(base) * no_per_base) + parseInt(point))};
+	}
+	
+	if (box_no !== 0)
+	{
+		//formula base = (point%NoPerBase) 
+		//point = (point - (NoPerBase * base))
+		base = Math.floor((point/no_per_base));
+		base = all_base[base];
+		
+		point = (point - (no_per_base * all_base.indexOf(base)));
+		console.log(point);
+		box_id =  base +""+ point;
+		
+		return {base: base, point: point, id: box_id};
+	}
+	return null;
+}
+</script>
