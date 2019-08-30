@@ -1,2 +1,2 @@
-# chessy
-A multiplayer chess html game
+## chessy
+A custom multiplayer **ludo** html 5 game
