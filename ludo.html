@@ -80,40 +80,82 @@
     let bases = ["A", "B"];
     let current_p = 0;
     let current_b = bases[0];
+    let no_per_base = 12;
 $("#roll").click(function(){
-    
-    let die1 = Math.floor(Math.random() * 5) + 1;
-    let die2 = Math.floor(Math.random() * 5) + 1;
+    let pin_class = ".pin";
+    let pin_html = "<div class='pin'></div>";
+    let die1 = Math.floor(Math.random() * 6) + 1;
+    let die2 = Math.floor(Math.random() * 6) + 1;
     let container = $(".container");
-    let holder = container.children().children(".pin");
+    let holder = container.children().children(pin_class);
+    let default_pin = "A0";
     
-    let current_box_id = holder.length == 0 ? 0 : parseInt(holder.parent().attr("id").replace("#").substring(1));
+    // let current_box_id = holder.length == 0 ? default_pin : holder.parent().attr("id").replace("#");
     
     // current box on the board logic
-    let current = isNaN(current_box_id) ? 0 : current_box_id;
-    let current_base = (current_box_id == 0) ? bases[0] : holder.parent().attr("id").replace("#").substring(0,1);
-    let pin = "<div class='pin'></div>";
+    let current = holder.length == 0 ? default_pin : holder.parent().attr("id").replace("#");
+    let current_base = (current == default_pin) ? bases[0] : holder.parent().attr("id").replace("#").substring(0,1);
+    
     
     console.log("Total of Dice: " + (die1 + die2));
-    let res = move(current, die1, die2, container, pin, current_base, 12, bases.length);
-    console.log(res.current, res.base);
-    current = res.current;
+    let res = move(current, die1, die2, container, current_base, 12, bases.length);
+    // console.log(JSON.stringify(res))
+    current = res.point;
     current_base = res.base;
-	//ui_move(res);
-
-    //console.log("Second Die");
-    //res = move(current, die2, container, pin, current_base, 12, bases.length);
-    //console.log(res.current, res.base);
-    //current = res.current;
-    //current_base = res.base;
+    ui_move(pin_class, pin_html, container, res.starting_point, (die1 + die2), no_per_base, res.starting_base, bases.length)
 
 });
 
-function ui_move(pin, container, current, dice_value, no_per_base, current_base, no_of_bases)
-{
-    //use interval to move pin ".pin"
+function move(box_id = 0, die1, die2, container, current_base, no_per_base, no_of_bases){
+    //total travel distance for pin
+    let total_travel_distance = die1 + die2;
     //current point on the board
-    let point = current;
+    let point = box_id === 0 ? 0 : convert(box_id=box_id, box_no=undefined, no_per_base, bases).box_point;
+    //current base
+    let base = current_base;
+    //next base
+    let next_base = (bases.indexOf(base) + 1);
+	//move pin based on dice roll
+    console.log("Rolled die1: " + die1 + " die2: " + die2);
+    //get supposed box id for this pin
+    let box_p = convert(undefined, box_no = ( point + total_travel_distance ), no_per_base, bases);
+    // console.log(JSON.stringify(box_p));
+    console.log("Moving to box " + box_p.box_id + "");
+	for (let i=1; i < total_travel_distance; i++)
+    {
+		if (point >= (total_travel_distance + point))
+		{
+			break;
+		}
+		
+		if (point > no_per_base)
+		{
+			base = next_base;
+		}
+		
+		if (point === 0)
+		{
+			point = 1;
+		}		
+		
+		point++;
+    }
+    
+    return { point: point, base: base, box_id: box_p.box_id, starting_point: box_id, starting_base: current_base };
+}
+
+function ui_move(pin_class, pin_html, container, current, dice_value, no_per_base, current_base, no_of_bases)
+{
+    //use interval to move pin class
+    //init point on the board
+    let init_point = convert(current, undefined, no_per_base, bases).box_point;
+    console.log("init point " + init_point);
+    console.log("stop at point " + (init_point + dice_value));
+    //current point on the board but controlled by no_per_base
+    //at NPB, point gets reset
+    let point = current.replace("#").substring(1);
+    //current point on the board ignoring no_per_base
+    let board_point = init_point;
     //current base
     let base = current_base;
     //next base
@@ -121,81 +163,66 @@ function ui_move(pin, container, current, dice_value, no_per_base, current_base,
 
     let movement = setInterval(() => {
 	//if current point is equal to old point + dice value then movement is complete
-        if (point == (current + dice_value))
+        if (board_point == (init_point + dice_value))
         {
             clearInterval(movement);
         }
         else{
             if (point > no_per_base){
-                container.children("#" + base + (point)).find(pin).remove();
+                container.children("#" + base + (point)).find(pin_class).remove();
                 point = 1;
                 if (next_base >= bases.length)
                 {
                     //completed movement
                     base = bases[base.length - 1];
+                    clearInterval(movement);
                 }
                 else
                 {
+                    //move to the next base
                     base = bases[next_base];
                 }
+
+                container.children("#" + base + (point)).html(pin_html);
             }
 
             if(point == 0)
             {
-                //if point is zero start moving on the board
-                container.children("#" + base + (1)).html(pin);
+                //if point is zero start moving on the board at point 1
+                container.children("#" + base + (1)).html(pin_html);
             }
             else
             {
-                container.children("#" + base + (point)).find(pin).remove();
-                container.children("#" + base + (point + 1)).html(pin);
+                //remove old pin
+                container.children("#" + base + (point)).find(pin_class).remove();
+                //recreate pin on new box
+                container.children("#" + base + (parseInt(point) + 1)).html(pin_html);
             }
             
+            //increase the point on the board and the logical board
             point++;
-            console.log("current point " + point);
-            console.log("moiving..");
+            board_point++;
+            
         }
     }, 300);
 }
 
-function move(current, die1, die2, container, pin, current_base, no_per_base, no_of_bases){
-    
-    //move pin based on dice roll
-    console.log("Rolled die1: " + die1 + " die2: " + die2);
-    console.log("Moving to box " + ( current + die1 + die2 ) + "");
-    console.log("current base " + current_base);
 
-    //total travel distance for pin
-    let total_travel_distance = die1 + die2;
-    //current point on the board
-    let point = current;
-    //current base
-    let base = current_base;
-    //next base
-    let next_base = (bases.indexOf(base) + 1);
-    alert(JSON.stringify(convert("B6", undefined, 12, bases)));
-    while(point <= (current + total_travel_distance)){
-		
-		point++;
-	}
-    
-    return {current: point, base: base} ;
-}
-
-function convert(box_id="A0", box_no=0, no_per_base, all_base)
+function convert(box_id, box_no, no_per_base, all_base)
 {
-	let base = box_id.replace("#","").substring(0,1);
-	let point = box_no === 0 ? box_id.replace("#","").substring(1) : box_no;
-	console.log(box_no);
+	let base = (box_id == undefined || box_id == null) ? all_base[0] : box_id.replace("#","").substring(0,1);
+	let point = (box_no == undefined) ? box_id.replace("#","").substring(1) : box_no;
+	// console.log("box_no " + box_no, "box_id " + box_id);
 	
-	if (box_id !== "A0")
+	if (box_no == undefined || box_no == null)
 	{
+        console.log("in  box_no");
 		//use box id to calculate point in board logic
 		//formula (IndexOfBase * NoPerBase) + point
 		return {box_point: ((all_base.indexOf(base) * no_per_base) + parseInt(point))};
 	}
 	
-	if (box_no !== 0)
+	if (box_id == undefined || box_id == null)
 	{
 		//formula base = (point%NoPerBase) 
 		//point = (point - (NoPerBase * base))
@@ -203,10 +230,10 @@ function convert(box_id="A0", box_no=0, no_per_base, all_base)
 		base = all_base[base];
 		
 		point = (point - (no_per_base * all_base.indexOf(base)));
-		console.log(point);
+		// console.log("convert point " + point);
 		box_id =  base +""+ point;
 		
-		return {base: base, point: point, id: box_id};
+		return {base: base, point: point, box_id: box_id};
 	}
 	return null;
 }
