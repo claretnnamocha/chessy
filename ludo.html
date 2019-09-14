@@ -38,7 +38,7 @@
     </head>
     <body>
         <div class="container">
-            <div id="A1" class="box"></div>
+            <!-- <div id="A1" class="box"></div>
             <div id="A2" class="box"></div>
             <div id="A3" class="box"></div>
             <div id="A4" class="box"></div>
@@ -50,6 +50,8 @@
             <div id="A10" class="box"></div>
             <div id="A11" class="box"></div>
             <div id="A12" class="box"></div>
+            <div id="A13" class="box"></div>
+            <div id="A14" class="box"></div>
             
             <div style="clear: both"></div>
             <div id="B1" class="box"></div>
@@ -64,6 +66,40 @@
             <div id="B10" class="box"></div>
             <div id="B11" class="box"></div>
             <div id="B12" class="box"></div>
+            <div id="B13" class="box"></div>
+            <div id="B14" class="box"></div>
+
+            <div style="clear: both"></div>
+            <div id="C1" class="box"></div>
+            <div id="C2" class="box"></div>
+            <div id="C3" class="box"></div>
+            <div id="C4" class="box"></div>
+            <div id="C5" class="box"></div>
+            <div id="C6" class="box"></div>
+            <div id="C7" class="box"></div>
+            <div id="C8" class="box"></div>
+            <div id="C9" class="box"></div>
+            <div id="C10" class="box"></div>
+            <div id="C11" class="box"></div>
+            <div id="C12" class="box"></div>
+            <div id="C13" class="box"></div>
+            <div id="C14" class="box"></div>
+
+            <div style="clear: both"></div>
+            <div id="D1" class="box"></div>
+            <div id="D2" class="box"></div>
+            <div id="D3" class="box"></div>
+            <div id="D4" class="box"></div>
+            <div id="D5" class="box"></div>
+            <div id="D6" class="box"></div>
+            <div id="D7" class="box"></div>
+            <div id="D8" class="box"></div>
+            <div id="D9" class="box"></div>
+            <div id="D10" class="box"></div>
+            <div id="D11" class="box"></div>
+            <div id="D12" class="box"></div>
+            <div id="D13" class="box"></div>
+            <div id="D14" class="box"></div> -->
         </div>
         <div class="button">
             <button id="roll">Roll</button>
@@ -73,20 +109,27 @@
     </body>
 </html>
 <script src="scripts/jquery-3.4.1.js"></script>
+<script src="scripts/move.js"></script>
+<script src="scripts/generare_boxes.js"></script>
 <script>
-//let a = prompt("Enter a");
-//let b = prompt("Enter b");
-///alert(Math.floor(a/b));
-    let bases = ["A", "B"];
-    let current_p = 0;
-    let current_b = bases[0];
-    let no_per_base = 12;
+    let container = $(".container");
+    // let bases = ["A", "B", "C", "D"];
+    // let no_per_base = 12;
+
+    // $(document).load(function(){
+    //     alert("");
+    // });
+    let GeneratorObject = new Generator();
+    GeneratorObject.boxes(no_per_base, bases, container);
+    let MovementObject = new Movement();
+
 $("#roll").click(function(){
     let pin_class = ".pin";
     let pin_html = "<div class='pin'></div>";
     let die1 = Math.floor(Math.random() * 6) + 1;
     let die2 = Math.floor(Math.random() * 6) + 1;
-    let container = $(".container");
+    die1 = 6; die2 = 7;
+    
     let holder = container.children().children(pin_class);
     let default_pin = "A0";
     
@@ -98,143 +141,13 @@ $("#roll").click(function(){
     
     
     console.log("Total of Dice: " + (die1 + die2));
-    let res = move(current, die1, die2, container, current_base, 12, bases.length);
+    let res = MovementObject.move(current, die1, die2, current_base, 12, bases);
     // console.log(JSON.stringify(res))
     current = res.point;
     current_base = res.base;
-    ui_move(pin_class, pin_html, container, res.starting_point, (die1 + die2), no_per_base, res.starting_base, bases.length)
+    MovementObject.ui_move(pin_class, pin_html, container, res.starting_point, (die1 + die2), no_per_base, res.starting_base, bases)
 
 });
 
-function move(box_id = 0, die1, die2, container, current_base, no_per_base, no_of_bases){
-    //total travel distance for pin
-    let total_travel_distance = die1 + die2;
-    //current point on the board
-    let point = box_id === 0 ? 0 : convert(box_id=box_id, box_no=undefined, no_per_base, bases).box_point;
-    //current base
-    let base = current_base;
-    //next base
-    let next_base = (bases.indexOf(base) + 1);
-	//move pin based on dice roll
-    console.log("Rolled die1: " + die1 + " die2: " + die2);
-    //get supposed box id for this pin
-    let box_p = convert(undefined, box_no = ( point + total_travel_distance ), no_per_base, bases);
-    // console.log(JSON.stringify(box_p));
-    console.log("Moving to box " + box_p.box_id + "");
-	for (let i=1; i < total_travel_distance; i++)
-    {
-		if (point >= (total_travel_distance + point))
-		{
-			break;
-		}
-		
-		if (point > no_per_base)
-		{
-			base = next_base;
-		}
-		
-		if (point === 0)
-		{
-			point = 1;
-		}		
-		
-		point++;
-    }
-    
-    return { point: point, base: base, box_id: box_p.box_id, starting_point: box_id, starting_base: current_base };
-}
 
-function ui_move(pin_class, pin_html, container, current, dice_value, no_per_base, current_base, no_of_bases)
-{
-    //use interval to move pin class
-    //init point on the board
-    let init_point = convert(current, undefined, no_per_base, bases).box_point;
-    console.log("init point " + init_point);
-    console.log("stop at point " + (init_point + dice_value));
-    //current point on the board but controlled by no_per_base
-    //at NPB, point gets reset
-    let point = current.replace("#").substring(1);
-    //current point on the board ignoring no_per_base
-    let board_point = init_point;
-    //current base
-    let base = current_base;
-    //next base
-    let next_base = (bases.indexOf(base) + 1);
-
-    let movement = setInterval(() => {
-	//if current point is equal to old point + dice value then movement is complete
-        if (board_point == (init_point + dice_value))
-        {
-            clearInterval(movement);
-        }
-        else{
-            if (point > no_per_base){
-                container.children("#" + base + (point)).find(pin_class).remove();
-                point = 1;
-                if (next_base >= bases.length)
-                {
-                    //completed movement
-                    base = bases[base.length - 1];
-                    clearInterval(movement);
-                }
-                else
-                {
-                    //move to the next base
-                    base = bases[next_base];
-                }
-
-                container.children("#" + base + (point)).html(pin_html);
-            }
-
-            if(point == 0)
-            {
-                //if point is zero start moving on the board at point 1
-                container.children("#" + base + (1)).html(pin_html);
-            }
-            else
-            {
-                //remove old pin
-                container.children("#" + base + (point)).find(pin_class).remove();
-                //recreate pin on new box
-                container.children("#" + base + (parseInt(point) + 1)).html(pin_html);
-            }
-            
-            //increase the point on the board and the logical board
-            point++;
-            board_point++;
-            
-        }
-    }, 300);
-}
-
-
-function convert(box_id, box_no, no_per_base, all_base)
-{
-	let base = (box_id == undefined || box_id == null) ? all_base[0] : box_id.replace("#","").substring(0,1);
-	let point = (box_no == undefined) ? box_id.replace("#","").substring(1) : box_no;
-	// console.log("box_no " + box_no, "box_id " + box_id);
-	
-	if (box_no == undefined || box_no == null)
-	{
-        console.log("in  box_no");
-		//use box id to calculate point in board logic
-		//formula (IndexOfBase * NoPerBase) + point
-		return {box_point: ((all_base.indexOf(base) * no_per_base) + parseInt(point))};
-	}
-	
-	if (box_id == undefined || box_id == null)
-	{
-		//formula base = (point%NoPerBase) 
-		//point = (point - (NoPerBase * base))
-		base = Math.floor((point/no_per_base));
-		base = all_base[base];
-		
-		point = (point - (no_per_base * all_base.indexOf(base)));
-		// console.log("convert point " + point);
-		box_id =  base +""+ point;
-		
-		return {base: base, point: point, box_id: box_id};
-	}
-	return null;
-}
 </script>
