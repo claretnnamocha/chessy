@@ -37,8 +37,11 @@
         </style>
     </head>
     <body>
+        <div>
+            <button id="new_player">New Player</button>
+        </div>
         <div class="container">
-            <!-- <div id="A1" class="box"></div>
+            <div id="A1" class="box"></div>
             <div id="A2" class="box"></div>
             <div id="A3" class="box"></div>
             <div id="A4" class="box"></div>
@@ -99,7 +102,7 @@
             <div id="D11" class="box"></div>
             <div id="D12" class="box"></div>
             <div id="D13" class="box"></div>
-            <div id="D14" class="box"></div> -->
+            <div id="D14" class="box"></div>
         </div>
         <div class="button">
             <button id="roll">Roll</button>
@@ -109,26 +112,20 @@
     </body>
 </html>
 <script src="scripts/jquery-3.4.1.js"></script>
+<script src="scripts/generate_walls.js"></script>
 <script src="scripts/move.js"></script>
-<script src="scripts/generare_boxes.js"></script>
+<script src="scripts/pins.js"></script>
+<script src="scripts/players.js"></script>
+<!-- always import constants last -->
+<script src="scripts/constants.js"></script>
 <script>
-    let container = $(".container");
-    // let bases = ["A", "B", "C", "D"];
-    // let no_per_base = 12;
-
-    // $(document).load(function(){
-    //     alert("");
-    // });
-    let GeneratorObject = new Generator();
-    GeneratorObject.boxes(no_per_base, bases, container);
-    let MovementObject = new Movement();
-
 $("#roll").click(function(){
+    
     let pin_class = ".pin";
     let pin_html = "<div class='pin'></div>";
     let die1 = Math.floor(Math.random() * 6) + 1;
     let die2 = Math.floor(Math.random() * 6) + 1;
-    die1 = 6; die2 = 7;
+    die1 = 2; die2 = 2;
     
     let holder = container.children().children(pin_class);
     let default_pin = "A0";
@@ -141,13 +138,25 @@ $("#roll").click(function(){
     
     
     console.log("Total of Dice: " + (die1 + die2));
-    let res = MovementObject.move(current, die1, die2, current_base, 12, bases);
+    
+    let res = MovementObject.move(current, die1, die2, current_base, no_per_base, bases, GeneratorObject.blocks, pl1.get(player_id));
     // console.log(JSON.stringify(res))
     current = res.point;
     current_base = res.base;
-    MovementObject.ui_move(pin_class, pin_html, container, res.starting_point, (die1 + die2), no_per_base, res.starting_base, bases)
+    MovementObject.ui_move(pin_class, pin_html, container, res.starting_point, (die1 + die2), no_per_base, res.starting_base, bases, GeneratorObject)
 
 });
 
+$("#new_player").click(function(){
+    //add a new player
+    let new_player_data = player_info[player_counter];
+    player_id = player_id_default+""+player_counter;
+    
+    // add players
+    pl1.new(player_counter, player_id, new_player_data , bases.length, pins_per_player)
+    //add a new pin for the player
+    // pn1 = new Pins(pl1.get(player_id));
+    player_counter++;   
+});
 
 </script>
