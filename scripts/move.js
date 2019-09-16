@@ -47,28 +47,8 @@ class Movement {
             point++;
         }
         
-        //from generate_walls.js
         if(blocks != undefined && player != undefined) {
-            //update information stored in blocks with each movement
-            //update current player info for blocks
-
-            //get active pin information for this player
-            let current_pin = this.GeneratorObject.PinObject.get(player.id);
-            current_pin.game.block = box_point.box_id;
-            blocks[box_point.box_id].pins.push(current_pin);
-            if (box_id !== "A0"){
-                let old_block = blocks[box_id];
-                console.log("move 61" + old_block.pins.indexOf(current_pin));
-                //on first run, box_id would be nulll/udnefined
-                //remove player from previous block if player's pin exists there
-                let pin_index = old_block.pins.indexOf(current_pin);
-                if (pin_index != -1) {
-                    blocks[box_id].pins.splice(pin_index-1, 1);
-                }
-                
-            }
-            
-            
+            this.GeneratorObject.PinObject.update_pins(box_id, box_point.box_id, player, blocks);
         }
 
         return { point: point, base: base, box_id: box_point.box_id, starting_point: box_id, starting_base: current_base };
