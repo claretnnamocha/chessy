@@ -1,12 +1,17 @@
-let bases = ["A", "B", "C", "D"];
-let no_per_base = 14;
-
 class Movement {
-    constructor(){
-
+    
+    constructor(GeneratorObject){
+        this.GeneratorObject = GeneratorObject;
+        this.PinObject = this.GeneratorObject.getPinObject();
+        this.PlayerObject = this.GeneratorObject.getPlayerObject();
     }
 
-    move(box_id = 0, die1, die2, current_base, no_per_base, bases){
+    GeneratorObject = undefined;
+    PlayerObject = undefined;
+    PinObject = undefined;
+
+    move(box_id = 0, die1, die2, current_base, no_per_base, bases, blocks=undefined, player=undefined){
+        console.log("move 14", player)
         let no_of_bases = bases.length
         //total travel distance for pin
         let total_travel_distance = die1 + die2;
@@ -18,10 +23,10 @@ class Movement {
         let next_base = (bases.indexOf(base) + 1);
         //move pin based on dice roll
         console.log("Rolled die1: " + die1 + " die2: " + die2);
-        //get supposed box id for this pin
-        let box_p = this.convert(undefined, ( point + total_travel_distance ), no_per_base, bases);
+        //below, get the ending point for this turn
+        let box_point = this.convert(undefined, ( point + total_travel_distance ), no_per_base, bases);
         // console.log(JSON.stringify(box_p));
-        console.log("Moving to box " + box_p.box_id + "");
+        console.log("Moving to box " + box_point.box_id + "");
         for (let i=1; i < total_travel_distance; i++)
         {
             if (point >= (total_travel_distance + point))
@@ -42,10 +47,34 @@ class Movement {
             point++;
         }
         
-        return { point: point, base: base, box_id: box_p.box_id, starting_point: box_id, starting_base: current_base };
+        //from generate_walls.js
+        if(blocks != undefined && player != undefined) {
+            //update information stored in blocks with each movement
+            //update current player info for blocks
+
+            //get active pin information for this player
+            let current_pin = this.GeneratorObject.PinObject.get(player.id);
+            current_pin.game.block = box_point.box_id;
+            blocks[box_point.box_id].pins.push(current_pin);
+            if (box_id !== "A0"){
+                let old_block = blocks[box_id];
+                console.log("move 61" + old_block.pins.indexOf(current_pin));
+                //on first run, box_id would be nulll/udnefined
+                //remove player from previous block if player's pin exists there
+                let pin_index = old_block.pins.indexOf(current_pin);
+                if (pin_index != -1) {
+                    blocks[box_id].pins.splice(pin_index-1, 1);
+                }
+                
+            }
+            
+            
+        }
+
+        return { point: point, base: base, box_id: box_point.box_id, starting_point: box_id, starting_base: current_base };
     }
 
-    ui_move(pin_class, pin_html, container, current, dice_value, no_per_base, current_base, bases)
+    ui_move(pin_class, pin_html, container, current, dice_value, no_per_base, current_base, bases, GeneratorObject)
     {
         
         // total number of bases
@@ -119,9 +148,10 @@ class Movement {
                     manual_reset = false;
                 }
                 
-                //if current point is equal to ( old point + dice value) then movement is complete
+                //if current point is equal to ( old point + dice value) then moveing the pin is complete
                 if (parseInt(board_point) === (parseInt(init_point) + parseInt(dice_value)))
                 {
+                    console.log(JSON.stringify(GeneratorObject.blocks));
                     clearInterval(movement);
                 }
 
@@ -150,6 +180,7 @@ class Movement {
     convert(box_id, box_no, no_per_base, all_base)
     {
         console.log("all_base " + all_base)
+        console.log("no per base ",no_per_base)
         let base = (box_id == undefined || box_id == null) ? all_base[0] : box_id.replace("#","").substring(0,1);
         let point = (box_no == undefined) ? box_id.replace("#","").substring(1) : box_no;
         // console.log("box_no " + box_no, "box_id " + box_id);
