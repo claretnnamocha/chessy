@@ -26,12 +26,36 @@
             .button{
                 clear: both;
             }
-            .pin{
+            .red_pin{
                 width: 30px;
                 height: 30px;
                 border: 2px solid #fff;
                 border-radius: 50px;
                 background: red;
+                margin: 15px;
+            }
+            .blue_pin{
+                width: 30px;
+                height: 30px;
+                border: 2px solid #fff;
+                border-radius: 50px;
+                background: blue;
+                margin: 15px;
+            }
+            .green_pin{
+                width: 30px;
+                height: 30px;
+                border: 2px solid #fff;
+                border-radius: 50px;
+                background: green;
+                margin: 15px;
+            }
+            .yellow_pin{
+                width: 30px;
+                height: 30px;
+                border: 2px solid #fff;
+                border-radius: 50px;
+                background: yellow;
                 margin: 15px;
             }
         </style>
@@ -106,6 +130,33 @@
         </div>
         <div class="button">
             <button id="roll">Roll</button>
+            <button id="roll2">Roll x2</button>
+        </div>
+        <div>
+            <div id="red_pins" style="float: left">
+                <div class='red_pin'></div>
+                <div class='red_pin'></div>
+                <div class='red_pin'></div>
+                <div class='red_pin'></div>
+            </div>
+            <div id="blue_pins" style="float: left">
+                <div class='blue_pin'></div>
+                <div class='blue_pin'></div>
+                <div class='blue_pin'></div>
+                <div class='blue_pin'></div>
+            </div>
+            <div id="green_pins" style="float: left">
+                <div class='green_pin'></div>
+                <div class='green_pin'></div>
+                <div class='green_pin'></div>
+                <div class='green_pin'></div>
+            </div>
+            <div id="yellow_pins" style="float: left">
+                <div class='yellow_pin'></div>
+                <div class='yellow_pin'></div>
+                <div class='yellow_pin'></div>
+                <div class='yellow_pin'></div>
+            </div>
         </div>
         
 
@@ -120,12 +171,44 @@
 <script src="scripts/constants.js"></script>
 <script>
 $("#roll").click(function(){
-    
-    let pin_class = ".pin";
-    let pin_html = "<div class='pin'></div>";
+    //testing start
+    player_id = player_id_default+""+0;
+    pin = "red_pin";
+    setPinInfo(pin);
+    //testing end
     let die1 = Math.floor(Math.random() * 6) + 1;
     let die2 = Math.floor(Math.random() * 6) + 1;
     die1 = 2; die2 = 2;
+    
+    let holder = container.children().children(pin_class);
+    let default_pin = "A0";
+    
+    // let current_box_id = holder.length == 0 ? default_pin : holder.parent().attr("id").replace("#");
+    
+    // current box on the board logic
+    let current = holder.length == 0 ? default_pin : holder.parent().attr("id").replace("#");
+    let current_base = (current == default_pin) ? bases[0] : holder.parent().attr("id").replace("#").substring(0,1);
+    
+    
+    console.log("Total of Dice: " + (die1 + die2));
+    
+    let res = MovementObject.move(current, die1, die2, current_base, no_per_base, bases, GeneratorObject.blocks, pl1.get(player_id));
+    // console.log(JSON.stringify(res))
+    current = res.point;
+    current_base = res.base;
+    MovementObject.ui_move(pin_class, pin_html, container, res.starting_point, (die1 + die2), no_per_base, res.starting_base, bases, GeneratorObject)
+
+});
+
+$("#roll2").click(function(){
+    //testing start
+    player_id = player_id_default+""+1;
+    pin = "green_pin";
+    setPinInfo(pin);
+    //testing end
+    let die1 = Math.floor(Math.random() * 6) + 1;
+    let die2 = Math.floor(Math.random() * 6) + 1;
+    // die1 = 2; die2 = 2;
     
     let holder = container.children().children(pin_class);
     let default_pin = "A0";

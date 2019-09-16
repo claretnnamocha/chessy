@@ -1,4 +1,9 @@
-
+//function
+function setPinInfo(pin){
+    pin = pin;
+    pin_class = "." + pin;
+    pin_html = "<div class='"+ pin +"'></div>";
+}
 
 //u.i container constant
 let container = $(".container");
@@ -37,3 +42,8 @@ let pins_per_player = 4;
 
 //init move object
 let MovementObject = GeneratorObject.getMoveObject();
+
+//pin constant
+let pin = "";
+let pin_class = "." + pin;
+let pin_html = "<div class='"+ pin +"'></div>";

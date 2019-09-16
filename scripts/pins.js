@@ -60,4 +60,30 @@ class Pins {
         }
         return pin_returned;
     }
+
+    update_pins(old_box_id, current_box_id, player, blocks) {
+        //old_box_id: old id of block holding current pin
+        //current_box_id: current id of block to hold current pin
+
+        //update information stored in blocks with each movement
+        //update current player info for blocks
+
+        //get active pin information for this player
+        let current_pin = this.get(player.id);
+        //update block infor stored in pin
+        current_pin.game.block = current_box_id;
+        //add pin to new block
+        blocks[current_box_id].pins.push(current_pin);
+        if (old_box_id !== "A0"){
+            let old_block = blocks[old_box_id];
+            console.log("pins 79 " + old_block.pins.indexOf(current_pin));
+            //on first run, old_box_id would be nulll/udnefined
+            //remove player from previous block if player's pin exists there
+            let pin_index = old_block.pins.indexOf(current_pin);
+            if (pin_index != -1) {
+                blocks[old_box_id].pins.splice(pin_index-1, 1);
+            }
+            
+        }
+    }
 }
