@@ -208,14 +208,14 @@ $("#roll2").click(function(){
     //testing end
     let die1 = Math.floor(Math.random() * 6) + 1;
     let die2 = Math.floor(Math.random() * 6) + 1;
-    // die1 = 2; die2 = 2;
+    die1 = 2; die2 = 2;
     
     let holder = container.children().children(pin_class);
     let default_pin = "A0";
     
     // let current_box_id = holder.length == 0 ? default_pin : holder.parent().attr("id").replace("#");
     
-    // current box on the board logic
+    // current box(block) on the board logic
     let current = holder.length == 0 ? default_pin : holder.parent().attr("id").replace("#");
     let current_base = (current == default_pin) ? bases[0] : holder.parent().attr("id").replace("#").substring(0,1);
     

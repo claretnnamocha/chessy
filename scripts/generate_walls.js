@@ -56,7 +56,7 @@ class Generator{
                
                 //register this box as a block
                 //default keys are listed below
-                this.create_block({ id: id, pins: [], actions: [], game: { wall: 0 } });
+                this.create_block({ id: id, pins: [], actions: [], game: { wall: { level: 0, owner: undefined } } });
                 // pins: player pins on this particular block
                 // actions: items placed on this box
                 // used the move.js file
