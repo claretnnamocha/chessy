@@ -17,8 +17,8 @@ class Pins {
         let pins_total = Object.keys(this.pins).length;
         if(pins_total < this.max_no) {
             //player: holds the information of the current
-            //game holds the information needed by this pin during gameplay
-            this.pins[pins_total] = { player: undefined, game: { armour: 0, active: false, block: "A0" },  }
+            //game: holds the information needed by this pin during gameplay
+            this.pins[pins_total] = {  player: undefined, game: { pin_id: pins_total, armour: 0, active: false, block: "A0" },  }
             this.pins[pins_total].player = player
         }
         else {
@@ -81,7 +81,7 @@ class Pins {
 
     add_to_block(blocks, current_box_id, current_pin) {
         if (blocks[current_box_id].pins.length > 0) {
-            alert("Pin not empty");
+            // alert("Pin not empty");
             let strongest_pin = { no: 0, armour: 0};
             let strongest_player = undefined;
             // check which player has higher armour as to who remains in block
@@ -91,7 +91,7 @@ class Pins {
                     strongest_player = element;
                 }
             });
-            alert(JSON.stringify(strongest_player));
+            // alert(JSON.stringify(strongest_player));
         }
         else {
             //add pin to new block

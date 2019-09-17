@@ -1,8 +1,9 @@
 //function
-function setPinInfo(pin){
+function setPinInfo(pin, id){
     pin = pin;
     pin_class = "." + pin;
-    pin_html = "<div class='"+ pin +"'></div>";
+    pin_id = "#" + id;
+    pin_html = "<div class='"+ pin +"' id='" + id + "'></div>";
 }
 
 //u.i container constant
@@ -14,7 +15,7 @@ let bases = ["A", "B", "C", "D"];
 let no_per_base = 14;
 
 //initialize Generator
-let GeneratorObject = new Generator(bases.length);
+let GeneratorObject = new Generator(bases.length, container);
 
 
 GeneratorObject.init_blocks(no_per_base, bases, container);
@@ -33,9 +34,8 @@ let player_info = [
 
 let player_id_default = "Pl";
 // get players instance
-console.log("constants 31", GeneratorObject.getPlayerObject());
 let pl1 = GeneratorObject.getPlayerObject();;
-let pn1= undefined;
+// let pn1= undefined;
 let player_id = undefined;
 let pins_per_player = 4;
 
@@ -47,3 +47,4 @@ let MovementObject = GeneratorObject.getMoveObject();
 let pin = "";
 let pin_class = "." + pin;
 let pin_html = "<div class='"+ pin +"'></div>";
+let pin_id = "#0";
