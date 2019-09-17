@@ -17,8 +17,8 @@ class Pins {
         let pins_total = Object.keys(this.pins).length;
         if(pins_total < this.max_no) {
             //player: holds the information of the current
-            //game holds the information needed by this pin during gameplay
-            this.pins[pins_total] = { player: undefined, game: { armour: 0, active: false, block: "A0" },  }
+            //game: holds the information needed by this pin during gameplay
+            this.pins[pins_total] = {  player: undefined, game: { pin_id: pins_total, armour: 0, active: false, block: "A0" },  }
             this.pins[pins_total].player = player
         }
         else {
@@ -37,20 +37,13 @@ class Pins {
         }
         //activating one pin for testing purposes
         this.pins[Object.keys(this.pins).length - 1].game.active = true;
+        this.pins[3].game.armour = 1;
     }
 
     get(player_id) {
         //get active pin for this player
         let pin_keys = Object.keys(this.pins);
         let pin_returned = null;
-        // pin_keys.forEach(key => {
-        //     console.log("pins 28", Pins.pins[key].player.id + " <> " + player_id)
-        //     if (Pins.pins[key].player.id == player_id && Pins.pins[key].game.active) {
-        //         console.log("pins 29", Pins.pins[key].player.id == player_id && Pins.pins[key].game.active)
-        //         pin_returned = Pins.pins[key];
-        //         break;
-        //     }
-        // });
         for (let i=0; i< pin_keys.length; i++) {
             if (this.pins[i].player.id == player_id && this.pins[i].game.active) {
                 console.log("pins 57", this.pins[i].player.id == player_id && this.pins[i].game.active)
@@ -72,8 +65,7 @@ class Pins {
         let current_pin = this.get(player.id);
         //update block infor stored in pin
         current_pin.game.block = current_box_id;
-        //add pin to new block
-        blocks[current_box_id].pins.push(current_pin);
+        this.add_to_block(blocks, current_box_id, current_pin);
         if (old_box_id !== "A0"){
             let old_block = blocks[old_box_id];
             console.log("pins 79 " + old_block.pins.indexOf(current_pin));
@@ -85,5 +77,27 @@ class Pins {
             }
             
         }
+    }
+
+    add_to_block(blocks, current_box_id, current_pin) {
+        if (blocks[current_box_id].pins.length > 0) {
+            // alert("Pin not empty");
+            let strongest_pin = { no: 0, armour: 0};
+            let strongest_player = undefined;
+            // check which player has higher armour as to who remains in block
+            blocks[current_box_id].pins.forEach(element => {
+                if (element.game.armour > strongest_pin.armour) {
+                    // strongest_pin.no = element
+                    strongest_player = element;
+                }
+            });
+            // alert(JSON.stringify(strongest_player));
+        }
+        else {
+            //add pin to new block
+            blocks[current_box_id].pins.push(current_pin);
+        }
+        
+        
     }
 }

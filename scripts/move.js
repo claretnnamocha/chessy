@@ -54,12 +54,11 @@ class Movement {
         return { point: point, base: base, box_id: box_point.box_id, starting_point: box_id, starting_base: current_base };
     }
 
-    ui_move(pin_class, pin_html, container, current, dice_value, no_per_base, current_base, bases, GeneratorObject)
+    ui_move(pin_class, pin_html, pin_id, container, current, dice_value, no_per_base, current_base, bases, GeneratorObject)
     {
         
         // total number of bases
         let no_of_bases = bases.length;
-        console.log("logiing");
         //use interval to move pin class
         //init point on the board
         let init_point = this.convert(current, undefined, no_per_base, bases).box_point;
@@ -89,7 +88,7 @@ class Movement {
 
             if (point >= no_per_base)
             {
-                container.children("#" + base + no_per_base).find(pin_class).remove();
+                container.children("#" + base + no_per_base).find(pin_id).remove();
                 //get next base
                 base = this.get_next_base(bases, next_base);
                 //if point is 1 and movement stops there
@@ -97,7 +96,7 @@ class Movement {
                 {
                     console.log("stopping");
                     // container.children("#" + base + 1).html(pin_html);
-                    container.children("#" + base + 1).html(pin_html);
+                    container.children("#" + base + 1).append(pin_html);
                     clearInterval(movement);
                 }
                 else{
@@ -116,7 +115,7 @@ class Movement {
                         clearInterval(movement);
                     }
 
-                    container.children("#" + base + parseInt(point)).html(pin_html);
+                    container.children("#" + base + parseInt(point)).append(pin_html);
                     manual_reset = true;
                     
                 }
@@ -124,7 +123,7 @@ class Movement {
             else
             {
                 if (manual_reset) {
-                    container.children("#" + base + (parseInt(point) - 1)).find(pin_class).remove();
+                    container.children("#" + base + (parseInt(point) - 1)).find(pin_id).remove();
                     manual_reset = false;
                 }
                 
@@ -138,14 +137,14 @@ class Movement {
                 if(point == 0)
                 {
                     //if point is zero start moving on the board at point 1
-                    container.children("#" + base + (1)).html(pin_html);
+                    container.children("#" + base + (1)).append(pin_html);
                 }
                 else
                 {
                     //remove old pin
-                    container.children("#" + base + (point)).find(pin_class).remove();
+                    container.children("#" + base + (point)).find(pin_id).remove();
                     //recreate pin on new box
-                    container.children("#" + base + (parseInt(point) + 1)).html(pin_html);
+                    container.children("#" + base + (parseInt(point) + 1)).append(pin_html);
                 }
                 point++;
             }
@@ -161,6 +160,7 @@ class Movement {
     {
         console.log("all_base " + all_base)
         console.log("no per base ",no_per_base)
+        console.log("move 165", box_id);
         let base = (box_id == undefined || box_id == null) ? all_base[0] : box_id.replace("#","").substring(0,1);
         let point = (box_no == undefined) ? box_id.replace("#","").substring(1) : box_no;
         // console.log("box_no " + box_no, "box_id " + box_id);

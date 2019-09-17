@@ -4,9 +4,11 @@ class Generator{
     PinObject = undefined;
     MoveObject = undefined;
     no_of_bases = undefined
+    container = undefined;
 
-    constructor(no_of_bases) {
+    constructor(no_of_bases, container) {
         this.no_of_bases = no_of_bases;
+        this.container = container;
     }
     
     getPlayerObject() {
@@ -23,7 +25,6 @@ class Generator{
         // on initialization create player and pins objects
         this.PlayerObject = new Players(this);
         this.PinObject = new Pins(this, this.no_of_bases);
-        console.log("generate 25", this.getPinObject());
         this.MoveObject = new Movement(this);
     }
     create_block(info) {
