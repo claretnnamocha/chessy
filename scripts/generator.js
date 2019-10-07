@@ -5,10 +5,14 @@ class Generator{
     MoveObject = undefined;
     no_of_bases = undefined
     container = undefined;
+    DiceObject = undefined;
+    UIObject = undefined;
+    base_classes = undefined;
 
-    constructor(no_of_bases, container) {
+    constructor(no_of_bases, container, base_classes) {
         this.no_of_bases = no_of_bases;
         this.container = container;
+        this.base_classes = base_classes;
     }
     
     getPlayerObject() {
@@ -20,12 +24,17 @@ class Generator{
     getMoveObject() {
         return this.MoveObject;
     }
+    getUIObject() {
+        return this.UIObject;
+    }
 
     init() {
         // on initialization create player and pins objects
         this.PlayerObject = new Players(this);
         this.PinObject = new Pins(this, this.no_of_bases);
         this.MoveObject = new Movement(this);
+        this.DiceObject = new Dice(this);
+        this.UIObject = new UserInterface(this);
     }
     create_block(info) {
         // Generator.blocks.push(info.id);

@@ -7,18 +7,18 @@ class Players {
     }
     
     
-    new(number, id, info, max_no, no_of_pins=0) {
+    new(number, id, info, max_no, no_of_pins=0, base) {
         //add new player
-        this.add(number, id, info, max_no, no_of_pins);
+        this.add(number, id, info, max_no, no_of_pins, base);
     }
-    add(number, id, info, max_no, no_of_pins) {
+    add(number, id, info, max_no, no_of_pins, base) {
         //add new player data
         //max_no is the maxium number of players per game
         if (Object.keys(this.players).length < max_no) {
             this.players[id] = { id: id, number: number, info: info }
             
             //create pins for players
-            this.GeneratorObject.PinObject.create_pins(this.get(id), no_of_pins);
+            this.GeneratorObject.PinObject.create_pins(this.get(id), no_of_pins, base);
 
             console.log("Player " + info.name + " has joined the game.");
         }
