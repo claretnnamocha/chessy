@@ -1,10 +1,19 @@
 class UserInterface {
     GeneratorObject = undefined;
-    pin_classes = ["red_pin", "green_pin", "blue_pin", "yellow_pin"];
+    MoveObject = undefined;
+    pin_classes = ["red_pin","blue_pin", "green_pin", "yellow_pin"];
+    //pin_default holds the initial properties and attributes of said pin
+    //to be used in returning the pin to base
+    pin_default = {}
 
     
     constructor(GeneratorObject){
         this.GeneratorObject = GeneratorObject;
+        this.MoveObject = GeneratorObject.getMoveObject();
+    }
+
+    display_message(message) {
+        alert(message);
     }
 
     ui_move(pin_html, pin_id, container, current, dice_value, no_per_base, current_base, bases, GeneratorObject, player)
@@ -30,6 +39,8 @@ class UserInterface {
         //used to clear point 1 of the board
         let manual_reset = false;
         let active_pin = GeneratorObject.PinObject.get(player.id);
+
+        let blocks = GeneratorObject.blocks;
 
         let movement = setInterval(() => {
         
@@ -87,6 +98,7 @@ class UserInterface {
                     container.children("#" + base + parseInt(point)).append(pin_html);
                     manual_reset = true;
                     
+                    
                 }
             }
             else
@@ -95,6 +107,14 @@ class UserInterface {
                     // ##
                     container.children("#" + base + (parseInt(point) - 1)).find(pin_id).remove();
                     manual_reset = false;
+
+                    if(blocks != undefined && player != undefined) {
+                        let old_box_id = "#" + base + parseInt(point - 1);
+                        let box_id = ("#" + base + parseInt(point));
+                        
+                        
+                        this.GeneratorObject.PinObject.update_pins(old_box_id, box_id, player, blocks, bases);
+                    }
                 }
                 
                 //if current point is equal to ( old point + dice value) then moveing the pin is complete
@@ -116,6 +136,14 @@ class UserInterface {
                     //recreate pin on new box
                     container.children("#" + base + (parseInt(point) + 1)).append(pin_html);
                 }
+                //update pin info
+                if(blocks != undefined && player != undefined) {
+                    let old_box_id = "#" + base + parseInt(point);
+                    let box_id = ("#" + base + parseInt(point) + 1);
+                    
+                    
+                    this.GeneratorObject.PinObject.update_pins(old_box_id, box_id, player, blocks, bases);
+                }
                 point++;
             }
             
@@ -127,34 +155,97 @@ class UserInterface {
     }
 
     remove_from_base(parent_id, pin_id) {
-        if (!pin_id.startsWith("#")) {
-            pin_id = "#" + pin_id;
-        }
+        let _pin_id = this.append_attr(pin_id);
+        
+        let _parent_id = this.append_attr(parent_id);
 
-        let element = $("#" + parent_id).children(pin_id);
-        element.remove();
+        // alert(JSON.stringify($(_parent_id)))
+        let element = $(_parent_id).find(_pin_id);
+        
+        this.pin_default[_pin_id] = { element: element, parent: _parent_id };
+        console.log("$pin", element);
+        console.log("$pin", element.attr("id"));
+        this.force_remove(element.attr("id"))
+
+        // element.remove();  
+        // element.css("background","hue")
+        // $(parent_id).children(_pin_id).css("background","pink");
+        // $(_pin_id).remove();
+        // alert(JSON.stringify($(_parent_id)));
+        // $(parent_id).find(_pin_id).remove();
+        // $(parent_id).append(element);
         //update pins object
+        
         let positions = this.GeneratorObject.PinObject.pin_position;
         this.GeneratorObject.PinObject.update_position(pin_id, positions.board);
+    }
+    add_to_base(pin_id) {
+        let _pin_id = this.append_attr(pin_id);
+        let current_pin = this.GeneratorObject.PinObject.get(undefined, pin_id);
         
-        // $("#" + parent_id).children().each(function() {
-        //     console.log(this.value);
-        //     let current_element = $(this);
-        //     if (current_element.attr("id") == pin_id) {
-                
-        //     }
-        //     console.log(parent_id);
-        // }); 
 
-        // let a = base_classes.children("#" + this.base_class).find("#" + pin_id);
-        // console.log(a);
+        console.log("addtobase", JSON.stringify(this.pin_default), _pin_id )
+        if (Object.keys(this.pin_default).includes(_pin_id)) {
+            let parent = this.pin_default[_pin_id].parent;
+            let element = this.pin_default[_pin_id].element;
+            console.log("add to base", this.pin_default, parent,element );
+            if (current_pin != undefined) {
+                //remove pin from current block its on
+                let current_block = current_pin.game.block;
+                console.log("ui 165", $("#" + current_block).children(), "curr b " + current_block, "pd " + pin_id);
+                this.force_remove(current_pin.game.pin_id);
+                // _pin_id .children()
+                // this.GeneratorObject.container.children("#" + current_block).find(".red_pin").css("background", "pink");
+                // let pin_block = this.GeneratorObject.container.children("#" + current_block).children("#4").css("background", "pink");
+                //pin_block.remove();
+                // console.log("pin_block", pin_block);
+                // $("#" + current_block).find(_pin_id).remove();
+            }
+            //send pin to base
+            // $(parent).append(element);
+        }
+        else {
+            this.display_message(messages.PIN_INFO_NOT_FOUND);
+        }
+
     }
 
     get_pin_parent(pin_id) {
-        if (!pin_id.startsWith("#")) {
-            pin_id = "#" + pin_id;
-        }
+        pin_id = this.append_attr(pin_id);
 
         return $(pin_id).parent().attr("id");
+    }
+    append_attr(value, type="id") {
+        if (type === "id") {
+            if (!value.toString().startsWith("#")) {
+                value = "#" + value;
+            }
+            return value
+        }
+    }
+
+    force_remove(value, type="id") {
+        let element = undefined;
+        switch(type) {
+            case "id":
+                try {
+                    element = document.getElementById(value);
+                    console.log("force remove", document.getElementById("blue_pin4"), "value passed", value, element);
+                    element.remove();
+                }
+                catch {
+
+                }
+                
+                
+                break;
+            case "class":
+                element = document.getElementsByClassName(value);
+                console.log("force remove", element);
+                element.remove();
+                break;
+            default:
+                break;
+        }
     }
 }
