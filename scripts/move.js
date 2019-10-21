@@ -35,12 +35,6 @@ class Movement {
         console.log(box_id);
         // console.log(JSON.stringify(box_p));
         console.log("Moving to box " + box_id.box_id + "");
-        
-        
-        
-        if(blocks != undefined && player != undefined) {
-            this.GeneratorObject.PinObject.update_pins(old_box_id, box_id.box_id, player, blocks, bases);
-        }
 
         return { point: box_id.point, base: current_base, box_id: box_id.box_id, starting_point: old_box_id, starting_base: old_base };
     }
@@ -49,8 +43,8 @@ class Movement {
 
     convert(box_id, board_point, no_per_base, all_base)
     {
-        console.log("all_base " + all_base)
-        console.log("no per base ",no_per_base)
+        // console.log("all_base " + all_base)
+        // console.log("no per base ",no_per_base)
         console.log("move 165", box_id);
         //if base is undefined, supply default base which is bases[0] else get base from box id
         let base = (box_id == undefined || box_id == null) ? all_base[0] : box_id.replace("#","").substring(0,1);
@@ -60,7 +54,7 @@ class Movement {
         
         if (board_point == undefined || board_point == null)
         {
-            console.log("in  board_point");
+            // console.log("in  board_point");
             //use box id to calculate point in board logic
             //formula (IndexOfBase * NoPerBase) + point
             let base_num_value = parseInt((all_base.indexOf(base) * no_per_base));
