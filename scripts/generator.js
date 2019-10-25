@@ -10,6 +10,7 @@ class Generator{
     base_classes = undefined;
     active_player = 0;
     PointsObject = undefined;
+    DiceObject = undefined;
 
     constructor(no_of_bases, container, base_classes) {
         this.no_of_bases = no_of_bases;
@@ -32,10 +33,13 @@ class Generator{
     getPointsObject() {
         return this.PointsObject;
     }
+    getDiceObject() {
+        return this.DiceObject;
+    }
 
 
     init() {
-        
+        console.log("initializing")
         // on initialization create player and pins objects
         this.PlayerObject = new Players(this);
         this.PinObject = new Pins(this, this.no_of_bases);
@@ -43,6 +47,7 @@ class Generator{
         this.DiceObject = new Dice(this);
         this.UIObject = new UserInterface(this);
         this.PointsObject = new Points(this);
+        this.DiceObject = new Dice(this);console.log("initialized")
     }
     create_block(info) {
         // Generator.blocks.push(info.id);
