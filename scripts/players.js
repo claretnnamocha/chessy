@@ -16,8 +16,7 @@ class Players {
         //add new player data
         //max_no is the maxium number of players per game
         if (Object.keys(this.players).length < max_no) {
-            this.players[id] = { id: id, number: number, info: info, game: { pin: pin, valid: Postive, points: info.game.points } }
-            PointSaver[id] = { total: 0 }
+            this.players[id] = { id: id, number: number, info: info, game: { pin: pin, valid: Postive, points: info.game.points, saveable_point: 0 } }
             //create pins for players
             this.GeneratorObject.PinObject.create_pins(this.get(id), no_of_pins, base);
 

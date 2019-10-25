@@ -9,7 +9,17 @@ messages = {
     "PIN_INFO_NOT_FOUND": "Pin information not found.",
     "MAX_PLAYERS_REACHED": "Maxium no of players reached.",
     "MAX_PINS_REACHED": "Maxium no of pins reached.",
-    "NOT_ENOUGH_POINTS": "You do not have enough points."
+    "NOT_ENOUGH_POINTS": "You do not have enough points.",
+    "INVALID_ACTION": "Invalid Action.",
+    "ACTIVE_PIN_NOT_ON_BOARD": "Active pin not on board",
+    "REQUIRED_6": "Die value of 6 required.",
+    "REQUIRED_PIN_ON_BOARD": "Action requires a pin on board.",
+    "POINT_ALREADY_SAVED": "You can't save any more die from this turn.",
+    "PIN_ON_BOARD": "Pin already on board."
+}
+
+constants = {
+    DIE: "die"
 }
 
 //function to update pin info
@@ -28,7 +38,6 @@ let base_classes = $("#base_classes");
 //base information
 let bases = ["A", "B", "C", "D"];
 let base_pins = ["red_pin", "blue_pin", "green_pin", "yellow_pin"];
-let PointSaver = {}
 //no_per_base is the numbers of blocks(boxes) each base has
 let no_per_base = 14;
 
@@ -66,7 +75,9 @@ let pins_per_player = 4;
 let MovementObject = GeneratorObject.getMoveObject();
 let UIObject = GeneratorObject.getUIObject();
 let PlayerObject = GeneratorObject.getPlayerObject();
-let PointsObject = new Points(GeneratorObject);
+let PointsObject = GeneratorObject.getPointsObject();
+let DiceObject = GeneratorObject.getDiceObject();
+let PinObject = GeneratorObject.getPinObject();
  
 //pin constant
 let pin = "";
