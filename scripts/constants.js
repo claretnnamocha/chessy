@@ -11,25 +11,47 @@ messages = {
     "MAX_PINS_REACHED": "Maxium no of pins reached.",
     "NOT_ENOUGH_POINTS": "You do not have enough points.",
     "INVALID_ACTION": "Invalid Action.",
+    "ERROR_OCCURED": "An error occured.",
     "ACTIVE_PIN_NOT_ON_BOARD": "Active pin not on board",
     "REQUIRED_6": "Die value of 6 required.",
     "REQUIRED_PIN_ON_BOARD": "Action requires a pin on board.",
     "POINT_ALREADY_SAVED": "You can't save any more die from this turn.",
-    "PIN_ON_BOARD": "Pin already on board."
+    "PIN_ON_BOARD": "Pin already on board.",
+    "GAME_ENDED": "Game has ended."
 }
 
 constants = {
-    DIE: "die"
+    DIE: "die",
+    PIN: "pin",
+    BLOCK: "block",
+    HTML: "html",
+    GENERATED: "generated",
+    MOVE: "move",
+    REMOVE: "remove",
+    SAVE: "save",
+    ID: "id",
+    CLASS: "class",
+    HASHTAG: "#"
 }
 
-//function to update pin info
-function setPinInfo(pin, id){
-    console.log("pin info",pin, id)
-    pin = pin;
-    pin_class = "." + pin;
-    pin_id = "#" + id;
-    pin_html = "<div class='"+ pin +"' id='" + id + "'></div>";
+mode = {
+    PIN: 0,
+    POINT: 1,
+    LUDO: 2
 }
+
+side = {
+    LEFT: 0,
+    RIGHT: 1
+}
+
+game_status = {
+    STARTING: 0,
+    ONGOING: 1,
+    ENDED: 2
+}
+
+
 
 //u.i container constant
 let container = $(".container");
@@ -38,11 +60,12 @@ let base_classes = $("#base_classes");
 //base information
 let bases = ["A", "B", "C", "D"];
 let base_pins = ["red_pin", "blue_pin", "green_pin", "yellow_pin"];
+let allowed_no = [1,2,3,4,5,6, 16]
 //no_per_base is the numbers of blocks(boxes) each base has
 let no_per_base = 14;
 
 //initialize Generator
-let GeneratorObject = new Generator(bases.length, container, base_classes);
+let GeneratorObject = new Generator(bases.length, container, base_classes, mode.LUDO, 1);
 
 //variable constants
 let Postive = 0;
@@ -79,8 +102,4 @@ let PointsObject = GeneratorObject.getPointsObject();
 let DiceObject = GeneratorObject.getDiceObject();
 let PinObject = GeneratorObject.getPinObject();
  
-//pin constant
-let pin = "";
-let pin_class = "." + pin;
-let pin_html = "<div class='"+ pin +"'></div>";
-let pin_id = "#0";
+

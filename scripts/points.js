@@ -3,17 +3,17 @@ class Points {
     PinObject = undefined;
     UIObject = undefined;
     PlayerObject = undefined
-
+    price = 6;
     pricing = {
         trap: {
-            default: 12,
-            custom: 18
+            default: this.price * 4,
+            custom: this.price * 6
         },
         wall: {
-            default: 6
+            default: this.price * 4
         },
         armour: {
-            default: 6
+            default: this.price * 2
         }
     }
 
