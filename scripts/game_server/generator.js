@@ -1,4 +1,4 @@
-class Generator{
+export default class Generator{
     id = undefined;
     PlayerObject = undefined;
     PinObject = undefined;
@@ -13,7 +13,7 @@ class Generator{
     container = undefined;
     
     base_classes = undefined;
-    active_player = 0;
+    active_player = 2;
     
     mode_type = mode.LUDO;
     nth_val = undefined;
@@ -21,27 +21,10 @@ class Generator{
     game_status = game_status.STARTING;
     
     mode_of_attack = undefined;
-    
+    bases = ["red_pin", "blue_pin", "green_pin", "yellow_pin"];
     allowed_no = [6];
     player_no = undefined;
     local_play = false;
-
-    bases = ["red_pin", "blue_pin", "green_pin", "yellow_pin"];
-
-    publish_action = {
-        pin_create: 0
-    }
-
-    publish_source = {
-        pin: 0,
-        block: 1,
-        dice: 2,
-        move: 3,
-        point: 4,
-        ui: 5,
-        player: 6
-    }
-    
 
     constructor(no_per_base, container, base_classes, bases, mode_type, nth_val) {
         // this.id = id;
@@ -132,18 +115,8 @@ class Generator{
         return this.allowed_no;
     }
 
-    get_local_play() {
-        return this.local_play;
-    }
-    
-
     get_active_player() { 
         //get from server gen object
-        // emit("GA-", 1);
-        // let players = this.getPlayerObject().players;
-        // let keys = Object.keys(players);
-        // console.log(players, keys, this.active_player, keys[this.active_player]);
-        // return keys[this.active_player];
         return this.active_player;
     }
 
@@ -152,29 +125,23 @@ class Generator{
             this.active_player = custom;
         }
         else {
-            if (this.get_local_play()) {
-                let players = this.getPlayerObject().get_players();
-                let prev_player = (players[this.active_player]);
-                // console.log("setting active", players, this.active_player, Object.keys(players).length, (this.active_player >= Object.keys(players).length - 1));
-                if (this.active_player >= players.length - 1) {
-                    // console.log("resetting active")
-                    this.active_player = 0;
-                }
-                else {
-                    this.active_player ++;
-                }
-                let player = (players[this.active_player]);
-                
-                //testing
-                console.log("-----Next Player-----")
-                console.log("switching",players,player)
-                document.getElementById("player_value").innerHTML = "<div>Current player: " + player.info.name + " <span style='color: " + (player.game.pin).toString().split("_")[0] + "'>" + player.game.pin + "</span> ||| prev player:" + prev_player.info.name + " prev pin: <span style='color: " + (prev_player.game.pin).toString().split("_")[0] + "'>" + prev_player.game.pin + "</span></div>";
-                ///testing
+            let players = this.getPlayerObject().players;
+            let prev_player = (players[Object.keys(players)[this.active_player]]);
+            // console.log("setting active", players, this.active_player, Object.keys(players).length, (this.active_player >= Object.keys(players).length - 1));
+            if (this.active_player >= Object.keys(players).length - 1) {
+                // console.log("resetting active")
+                this.active_player = 0;
             }
             else {
-                emit("SA-", 1);
+                this.active_player ++;
             }
+            let player = (players[Object.keys(players)[this.active_player]]);
             
+            //testing
+            console.log("-----Next Player-----")
+            console.log("switching",Object.keys(players),player)
+            document.getElementById("player_value").innerHTML = "<div>Current player: " + player.info.name + " <span style='color: " + (player.game.pin).toString().split("_")[0] + "'>" + player.game.pin + "</span> ||| prev player:" + prev_player.info.name + " prev pin: <span style='color: " + (prev_player.game.pin).toString().split("_")[0] + "'>" + prev_player.game.pin + "</span></div>";
+            ///testing
             
         } 
     }
@@ -249,43 +216,13 @@ class Generator{
         return true;
     }
 
-    publish(value, publish_action, publish_source) {
-        console.log("Publish ", value, publish_action, publish_source);
+    publish(value, player_id, publish_type) {
         if (!this.local_play) {
-            value.player_id = this.get_player();
-            value.source = publish_source;
-            // value.len = len;
-            emit(publish_action, value);
-            console.log("emitting", publish_action, value);
+            value.player = player_id;
+            emit(publish_type, value);
+            console.log("emitting", publish_type, value);
         }
-    }
-
-    update_generator(data, len=1) {
-        console.log("Data", data, " len", len, this.get_player());
-        for (let i = 0; i < len; i++) {
-            if (data[i].value.player_id != this.get_player()) {
-                console.log("Updating")
-                let publish_action = data[i].key;
-                let value = data[i].value;
-                switch(value.source) {
-                    case publish_source.pin:
-                        this.PinObject.override(publish_action, value);
-                        console.log(value);
-                        break;
-                    case publish_source.player:
-                        this.PlayerObject.override(publish_action, value)
-                        break;
-                    case publish_source.dice:
-                        this.DiceObject.override(publish_action, value);
-                        break;
-                    default:
-                        break;
-
-                }
-            }
-            
-        }
-        
     }
 
 }
+

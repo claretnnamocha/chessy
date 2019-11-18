@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script></script>
+  </head>
+  <body>
+    <ul id="messages"></ul>
+    
+    <button id="emitter" onclick="emitter()">Reset Game Server</button>
+    
+  </body>
+</html>
+<!--  -->
+<script src="/scripts/jquery-3.4.1.js"></script>
+<script>
+    // alert("")
+    // let sockets = [];
+    let socket = io("http://localhost:4000");
+    // const socket = openSocket("http://localhost:4000")
+    function emitter() {
+        // alert("");
+        console.log("emit");
+        
+        // sockets.push(socket);
+        socket.emit("reset_game", { value: 1 });
+    }
+    
+    
+</script>

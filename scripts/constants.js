@@ -17,7 +17,9 @@ messages = {
     "REQUIRED_PIN_ON_BOARD": "Action requires a pin on board.",
     "POINT_ALREADY_SAVED": "You can't save any more die from this turn.",
     "PIN_ON_BOARD": "Pin already on board.",
-    "GAME_ENDED": "Game has ended."
+    "GAME_ENDED": "Game has ended.",
+    "PIN_COMPLETED": "Active pin is has completed game play.",
+    "PURCHASE_BLOCK_FIRST": "Please purchase block to perform selected action."
 }
 
 constants = {
@@ -31,13 +33,27 @@ constants = {
     SAVE: "save",
     ID: "id",
     CLASS: "class",
-    HASHTAG: "#"
+    HASHTAG: "#",
+    WALL: "wall",
+    TRAP: "trap",
+    ARMOUR: "armour",
+    ALL: "*",
+    MOVE: 'move',
+    REMOVE_FROM_BASE: 'remove-from-base',
+    BASES: 'bases',
+    OWNER: 'owner'
 }
 
 mode = {
     PIN: 0,
     POINT: 1,
     LUDO: 2
+}
+
+attack_mode = {
+    LUDO: 0,
+    BASIC: 1,
+    ETC: 2
 }
 
 side = {
@@ -51,6 +67,22 @@ game_status = {
     ENDED: 2
 }
 
+publish_action = {
+    pin_create: 0,
+    player_create: 1,
+    dice_roll: 2
+}
+
+publish_source = {
+    pin: 0,
+    block: 1,
+    dice: 2,
+    move: 3,
+    point: 4,
+    ui: 5,
+    player: 6
+}
+
 
 
 //u.i container constant
@@ -62,44 +94,62 @@ let bases = ["A", "B", "C", "D"];
 let base_pins = ["red_pin", "blue_pin", "green_pin", "yellow_pin"];
 let allowed_no = [1,2,3,4,5,6, 16]
 //no_per_base is the numbers of blocks(boxes) each base has
-let no_per_base = 14;
+let no_per_base = 19;
 
-//initialize Generator
-let GeneratorObject = new Generator(bases.length, container, base_classes, mode.LUDO, 1);
 
 //variable constants
-let Postive = 0;
+let Positive = 1;
 let Negative = -1;
-let Neutral = 1;
+let Neutral = 0;
 
-GeneratorObject.init_blocks(no_per_base, bases, container);
-GeneratorObject.init();
+//
+let counter = 0;
 
 //player constants
 let player_counter = 0;
 let player_info = [
-    { name: "Mike Ade", age: "22", wins: 1, game: { points: 0 } },
-    { name: "Julia Thomas", age: "18", wins: 1, game: { points: 0 } },
-    { name: "James Darkyn", age: "23", wins: 3, game: { points: 0 } },
-    { name: "Silver Pulker", age: "28", wins: 8, game: { points: 0 } }
+    { name: "Mike Ade", age: "22", wins: 1, game: { points: 50 } },
+    { name: "Julia Thomas", age: "18", wins: 1, game: { points: 50 } },
+    { name: "James Darkyn", age: "23", wins: 3, game: { points: 50 } },
+    { name: "Silver Pulker", age: "28", wins: 8, game: { points: 50 } }
 ];
 
 
 
 let player_id_default = "Pl";
-// get players instance
-let playerObject = GeneratorObject.getPlayerObject();;
+
 // let pn1= undefined;
 let player_id = undefined;
 let pins_per_player = 4;
 
+//initialize Generator
+let GeneratorObject = new Generator(no_per_base, container, base_classes, bases, mode.LUDO, 2);
 
 //init move object
-let MovementObject = GeneratorObject.getMoveObject();
-let UIObject = GeneratorObject.getUIObject();
-let PlayerObject = GeneratorObject.getPlayerObject();
-let PointsObject = GeneratorObject.getPointsObject();
-let DiceObject = GeneratorObject.getDiceObject();
-let PinObject = GeneratorObject.getPinObject();
+let MovementObject = undefined;
+let UIObject = undefined;
+// get players instance
+let PlayerObject = undefined;
+let PointsObject = undefined;
+let DiceObject = undefined;
+let PinObject = undefined;
+let BlocksObject = undefined;
+
+
+function init() {
+    GeneratorObject.init();
+    // setTimeout(() => {
+        MovementObject = GeneratorObject.getMoveObject();
+        UIObject = GeneratorObject.getUIObject();
+        PlayerObject = GeneratorObject.getPlayerObject();
+        PointsObject = GeneratorObject.getPointsObject();
+        DiceObject = GeneratorObject.getDiceObject();
+        PinObject = GeneratorObject.getPinObject();
+        BlocksObject = GeneratorObject.getBlocksObject();
+        console.log("loaded")
+    // }, 1000);
+    GeneratorObject.BlocksObject.init_blocks(container);
+}
+
  
 
