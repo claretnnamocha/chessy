@@ -5,25 +5,21 @@ class Dice {
         this.GeneratorObject = GeneratorObject;
     }
 
-    action() {
-        
-    }
     vall = 6; counterr=0;
     roll(nth_value=undefined, player_id, custom_data=undefined) {
+        this.counterr = 0;
         let dice = [];
         if (nth_value == undefined) nth_value = 2;
         
         for (let i = 1; i <= nth_value; i++) {
             let die_value = this.gen_die_value();
-            if (this.counterr >= 0) {
+            if (this.counterr == 0) {
                 die_value = this.vall;
                 this.counterr +=1;
                 if(player_id == 0) {
                     die_value = 16;
                 }
-                else if(player_id == 1) {
-                    die_value = 2;
-                }
+                
 
             }
             dice.push({ title: constants.DIE + i + Math.floor(Math.random() * 6), val: die_value, player_id: player_id });

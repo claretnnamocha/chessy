@@ -1,3 +1,4 @@
+
 class Pins {
     no_of_bases = 0;
     pins = {}
@@ -9,15 +10,20 @@ class Pins {
         safe: 2
     }
     safe_pins = {}
-    nth_pin = 4;
+    nth_value = 1;
+    mode_type = mode.LUDO;
+
     
     
 
-    constructor(GeneratorObject, no_of_bases) {
+    constructor(GeneratorObject, no_of_bases, mode_type, nth_value) {
         this.GeneratorObject = GeneratorObject;
         this.PlayerObject = GeneratorObject.getPlayerObject();
         this.max_no = (no_of_bases * this.pins_per_player);
         this.UIObject = GeneratorObject.getUIObject();
+
+        //set game mode
+        this.set_mode(mode_type, nth_value);
         
     }
     
@@ -25,8 +31,10 @@ class Pins {
     PlayerObject = undefined;
     UIObject = undefined;
 
-    set_nth_pins(no) {
-        this.nth_pin = no;
+    set_mode(mode_type, no) {
+        this.nth_value = no
+        this.mode_type = mode_type;
+        
     }
     new (player, base) {
         let pins_total = Object.keys(this.pins).length;
@@ -62,15 +70,16 @@ class Pins {
     }
 
     get(player_id=undefined, pin_id=undefined) {
-        
         let pin_keys = Object.keys(this.pins);
         let pin_returned = null;
         for (let i=0; i< pin_keys.length; i++) {
             //get active pin for this player
             if (player_id != undefined) {
+                
                 if (this.pins[pin_keys[i]].player.id == player_id && this.pins[pin_keys[i]].game.active == Postive) {
-                    // console.log("pins 50", this.pins[i])
-                    pin_returned = this.pins[pin_keys[i]];
+                    console.log("pins 76", this.pins[pin_keys[i]], player_id)
+                    if (pin_returned == null )pin_returned = this.pins[pin_keys[i]];
+                    
                     break;
                 }
             }
@@ -87,7 +96,7 @@ class Pins {
             }
             
         }
-        console.log("pin returned", pin_returned);
+        // console.log("pin returned", pin_returned);
         
         return pin_returned;
     }
@@ -115,30 +124,69 @@ class Pins {
 
         if (!new_pin_entry){
             let old_block = blocks[old_box_id];
-            console.log("pins 79 " + old_block.pins.indexOf(current_pin));
+            // console.log("pins 79 " + old_block.pins.indexOf(current_pin));
             //on first run, old_box_id would be nulll/udnefined
             //remove player from previous block if player's pin exists there
-            let pin_index = old_block.pins.indexOf(current_pin);
-            if (pin_index != -1) {
-                blocks[old_box_id].pins.splice(pin_index-1, 1);
-            } 
+            // let pin_index = old_block.pins.indexOf(current_pin);
+            this.GeneratorObject.remove_pin_from_block(old_box_id,current_pin.game.pin_id);
+            // console.log("pin_index", pin_index);
+            // if (pin_index != -1) {
+            //     // blocks[old_box_id].pins.splice(pin_index-1, 1)
+                
+                
+            // } 
         }
 
+        this.check_win(current_pin, current_box_id, player, this.mode_type);
+
+        
+    }
+
+    check_win(current_pin=undefined, current_box_id=undefined, player, mode_type) {
+        switch(mode_type) {
+            case mode.PIN:
+                if (current_pin != undefined && current_box_id != undefined) {
+                    this.pin_mode(current_pin,current_box_id, player);
+                }
+                else {
+                    this.GeneratorObject.UIObject.display_message(messages.INVALID_ACTION);
+                }
+                
+                break;
+            case mode.POINTS:
+                break;
+            case mode.LUDO:
+                    if (current_pin != undefined && current_box_id != undefined) {
+                        this.pin_mode(current_pin,current_box_id, player);
+                    }
+                    else {
+                        this.GeneratorObject.UIObject.display_message(messages.INVALID_ACTION);
+                    }
+            default:
+                break;
+        }
+        
+    }
+
+    pin_mode(current_pin, current_box_id, player) {
         if(current_pin.game.end_block == current_box_id && current_pin.game.returned == Neutral) {
             // console.log(this.GeneratorObject.UIObject);
             this.GeneratorObject.UIObject.display_message(player.info.name + " has gotten a pin to safety.");
             current_pin.game.returned = Postive;
             this.update_position(current_pin.game.pin_id, this.pin_position.safe);
-            if (Object.keys(this.safe_pins).includes(player)) {
-                this.safe_pins[player].pins.push(current_pin.game.pin_id);
-                if (this.safe_pins[player].pins.length == this.nth_pin) {
-                    //game has finished
-                    this.GeneratorObject.UIObject.display_message(player.info.name + " has won the game.");
-                }
+            let keys = Object.keys(this.safe_pins);
+            // console.log("ened empty", JSON.stringify(this.safe_pins), (keys.length));
+            if (keys.length == 0) {
+                this.safe_pins[player.id] = {pins: 1}
             }
             else {
-                this.safe_pins[player] = { pins: [current_pin.game.pin_id] }
+                this.safe_pins[player.id].pins++;                
             }
+            if (this.safe_pins[player.id].pins == this.nth_value) {
+                this.GeneratorObject.UIObject.display_message(player.info.name + " has won.");
+                this.GeneratorObject.set_winner(player.id);
+            }
+            console.log("safe pins", Object.keys(this.safe_pins), this.safe_pins, keys.includes(player.id))  
             
         }
     }
@@ -148,59 +196,107 @@ class Pins {
         //add pin to new block
         blocks[current_box_id].pins.push(current_pin);
 
-        if (blocks[current_box_id].pins.length > 0) {
+        if (blocks[current_box_id].pins.length > 1) {
             // alert("block not empty");
-            let strongest_pin = { no: 0, armour: 0};
-            let strongest_player = undefined;
-            // check which player has higher armour as to who remains in block
-            blocks[current_box_id].pins.forEach(element => {
-                console.log("storng", element)
-                if (element.game.armour > strongest_pin.armour) {
-                    
-                    strongest_pin.no = element;
-                    strongest_pin.armour = element.game.armour;
-                    strongest_player = element.player.id;
-                }
-            });
-            // alert(JSON.stringify(strongest_player));
-            console.log("strongest player", strongest_player);
-            //after getting player with strongest armour
-            //remove other pins
-            for (let i = 0; i < blocks[current_box_id].pins.length; i++) {
-                let element = blocks[current_box_id].pins[i];
-                if (element.player.id != strongest_player && strongest_player != undefined) {
-                    // console.log("element.pindid", element.game.pin_id);
-                    this.GeneratorObject.UIObject.force_remove(undefined, "id", element.game.pin_id);   
-                    this.GeneratorObject.UIObject.add_to_base(element.game.pin_id);
-                    //return weaker pin back to base
-                    element.game.block = element.game.start_block;
-                    element.game.returned = Negative;
-                    this.update_position(element.game.pin_id, this.pin_position.base);
-                }
-            }
+            //this.strongest_check(blocks, current_box_id, current_pin);
             
         }   
     }
 
-    activate(pin_id) {
+    strongest_check(blocks,current_box_id, current_pin) {
+
+        // alert("block not empty");
+        let strongest_pin = { no: current_pin, armour: current_pin.game.armour};
+        let strongest_player = current_pin.player.id;
+        // check which player has higher armour as to who remains in block
+        blocks[current_box_id].pins.forEach(element => {
+            if (element.game.armour > strongest_pin.armour) {
+                
+                strongest_pin.no = element;
+                strongest_pin.armour = element.game.armour;
+                strongest_player = element.player.id;
+            }
+            else if(element.game.armour == strongest_pin.armour) {
+                strongest_pin.no = element;
+                strongest_pin.armour = element.game.armour;
+                strongest_player = element.player.id;
+            }
+        });
+        // alert(JSON.stringify(strongest_player));
+        // console.log("strongest player", strongest_player, "PINS", blocks[current_box_id].pins.length);
+        //after getting player with strongest armour
+        //remove other pins
+        let pins = blocks[current_box_id].pins;
+        for (let i = 0; i < pins.length; i++) {
+            let element = pins[i];
+            if (element.player.id != strongest_player && strongest_player != undefined) {
+                // console.log("element.pindid", element.game.pin_id);
+
+                this.GeneratorObject.UIObject.force_remove(undefined, "id", element.game.pin_id);   
+                //return pin to base
+                this.GeneratorObject.UIObject.add_to_base(element.game.pin_id);
+                //return weaker pin back to base
+                element.game.returned = Negative;
+                this.update_position(element.game.pin_id, this.pin_position.base);
+                this.GeneratorObject.remove_pin_from_block(current_box_id, element.game.pin_id);
+                // console.log("removing pin ", element.game.pin_id);
+            }
+        }
+    }
+
+    activate(pin_id, automated=Neutral, player_id=undefined) {
         // get current pin
         let current_pin = this.get(undefined, pin_id);
+        //make null checkfor pin here
+
         let owner = current_pin.player;
         //get player's active pin
         let active_pin = this.get(owner.id, undefined);
-        if (active_pin == null) {
-            active_pin = current_pin;
-            active_pin.game.active = Postive;
+        //get pins on same block
+        let block_pins = this.get_pins_on_same_block(pin_id, player_id);
+        console.log("same block", block_pins)
+        //if not have more and player_id is passed, returned pin is mine
+        if (block_pins != undefined && !block_pins.has_more_of_mine && block_pins.pins.length == 1 && player_id != undefined) {
+            current_pin = this.get(undefined, block_pins.pins[0]);
+            owner = current_pin.player;
+            active_pin = this.get(owner.id, undefined);
+        }
+
+        if (block_pins == undefined || !block_pins.has_more_of_mine || automated == Negative) {
+            if (active_pin == null) {
+                active_pin = current_pin;
+                active_pin.game.active = Postive;
+            }
+            else {
+                if (current_pin !== active_pin) {
+                    active_pin.game.active = Negative;
+                    current_pin.game.active = Postive;
+                    active_pin = current_pin;
+                }
+            }
+            console.log("active pin ", active_pin);
+            return active_pin;
         }
         else {
-            if (current_pin !== active_pin) {
-                active_pin.game.active = Negative;
-                current_pin.game.active = Postive
-            }
+            let my_pins = [];
+            let UIObject = this.GeneratorObject.UIObject;
+            // loop through and get players pins only
+            block_pins.pins.forEach(id => {
+                let pin = this.get(undefined, id);
+                console.log("OWNER", owner.id, "RN", pin.player);
+                if (pin.player.id == player_id) {
+                    my_pins.push(id);
+                    UIObject.replicate("#pins_value", UIObject.create_element(undefined, undefined,() => {
+                        this.activate(id, automated=Negative);
+                        my_pins.forEach(element => {
+                            this.GeneratorObject.UIObject.force_remove(constants.PIN + element);
+                        });
+                        
+                    }, id, constants.PIN + id ));
+                }
+            });
+            return;
         }
-        console.log("active pin ", active_pin);
-        return active_pin;
-
     }
     
     update_position(pin_id, position) {
@@ -241,5 +337,45 @@ class Pins {
             }
         });
         return pins;
+    }
+
+    get_pins_on_same_block(pin_id, player_id=undefined) {
+        let current_pin = this.get(undefined,pin_id);
+
+        let block = this.GeneratorObject.get(current_pin.game.block);
+        console.log("block", block, "player_id", player_id)
+
+        if (block != undefined) {
+            let pins = [];
+        
+            block.pins.forEach(pin => {
+            console.log("Pin", pin)
+                if (pin.game.block == block.id) {
+                    
+                    console.log("Pin", pin, "block", block)
+                    if (player_id != undefined) {
+                        console.log("Pin", pin, "block", block, "player_id", player_id, pin.player.id)
+                        //if player id is passed, get only my pins on the same block
+                        if (pin.player.id == player_id) {
+                            pins.push(pin.game.pin_id);
+                        }
+                    }
+                    else {
+                        pins.push(pin.game.pin_id);
+                    }
+                    
+                    
+                    // block.pins.
+                }
+                else {
+                    //block not updated, pin not on this block
+                    this.GeneratorObject.remove_pin_from_block(block.id, pin.game.id);
+                }
+            
+            });
+            
+            return { has_more_of_mine: (pins.length > 1), pins: pins, total_pins: block.pins.length }
+        }
+        
     }
 }

@@ -67,8 +67,8 @@
     <body>
         <span id="timer">Timer </span>
         <div id="points_v">Points</div>
-        <div id="dice_value">
-        </div>
+        <div id="dice_value"></div>
+        <div id="pins_value"></div>
         <div class="button">
             <button id="new_player" style="float: left;">New Player</button>
             <button id="roll" style="float: left;">Roll</button>
@@ -214,7 +214,7 @@ $(document).ready(function() {
     let action_type = $("#type");
     let block_action = $("#block_action");
     action_type.on("change", function() {
-        if (action_type.val() == "pin") {
+        if (action_type.val() == constants.PIN) {
             block_action.css("display","none");
         }
         else {
@@ -238,17 +238,43 @@ $("#new_player").click(function(){
     player_counter++;   
 });
 
-function pin_tapped(pin) {
+function pin_tapped(pin=undefined, source=constants.HTML, pin_id=undefined) {
+    player_id = GeneratorObject.get_active_player();
+    let prev_color = undefined;
     //activate pin
+    switch(source) {
+        case constants.HTML:
+            prev_color = pin.style.background;
+            GeneratorObject.PinObject.activate(pin.id, undefined, player_id);
+            pin.style.background = "purple";
+            
+            setTimeout(() => {
+                pin.style.background = prev_color;
+            }, 1000);
+            break;
+        case constants.GENERATED:
+            // console.log("Pin Id", pin_id);
+            // prev_color = $(append_attr(pin_id)).css("background");
+            prev_color = document.getElementById(pin_id).style.background;
+            GeneratorObject.PinObject.activate(pin_id,undefined, player_id);
+            $(append_attr(pin_id)).css("background", "purple");
+            
+            setTimeout(() => {
+                $(append_attr(pin_id)).css("background", prev_color);
+            }, 1000);
+            break;
+    }
     
-    GeneratorObject.PinObject.activate(pin.id);
+    
     // let parent_id = GeneratorObject.UIObject.get_pin_parent(pin.id);
     // GeneratorObject.UIObject.remove_from_base(parent_id, pin.id);
 }
 
 $("#roll").click(function(){
+    
     //testing start
     player_id = GeneratorObject.get_active_player();
+    // console.log("GEN PREV NEXT", GeneratorObject.get_blocks_on_side("A4",side.LEFT, 0, player_id ));
     let p_player = playerObject.get(player_id);
 
     switch(p_player.game.valid) {
@@ -256,8 +282,9 @@ $("#roll").click(function(){
             let all_dice = [];
             let dice_ids = {};
             p_player.game.saveable_point = 0;
+            UIObject.display_message(p_player.info.name + " roll the dice");
             for (let i = 0; i < 5; i++) {
-                UIObject.display_message(p_player.info.name + " roll the dice");
+                
                 let result = DiceObject.roll(undefined, player_id);
                 // console.log(result.dice);
                 // all_dice += dice;
@@ -310,7 +337,7 @@ $("#use_point").click(function() {
     
     // let p_player = playerObject.get(player_id);
     let point_type = $("#type").val();
-    if (point_type == "pin") {
+    if (point_type == constants.PIN) {
         let active_pin = GeneratorObject.PinObject.get(player_id);
         if (active_pin != null) {
             PointsObject.use(point_type, "armour", player_id, active_pin.game.pin_id);
@@ -320,7 +347,7 @@ $("#use_point").click(function() {
         }
         
     }
-    else if (point_type == "block") {
+    else if (point_type == constants.BLOCK) {
         let block_action = $("#block_type").val();
         let active_block = GeneratorObject.get();
         if (active_block != undefined) {
@@ -332,24 +359,30 @@ $("#use_point").click(function() {
     
 });
 
-function activate_pin(pin, active_pin) {
-    try {
-        setPinInfo(pin, active_pin.game.pin_id);
-    }
-    catch(error) {
-        UIObject.display_message(messages.ACTIVATE_PIN)
-        return;
-    }
-}
+// function activate_pin(pin, active_pin) {
+//     // console.log("ACtivatepin", pin, active_pin)
+    
+//     try {
+//         // alt: pin == pin_class, AC_P.G.PID == pin_id
+//         setPinInfo(pin, active_pin.game.pin_id);
+//     }
+//     catch(error) {
+//         console.log(error)
+//         UIObject.display_message(messages.ACTIVATE_PIN)
+//         return;
+//     }
+// }
 
 function remove_from_base(pin_id, active_pin, send_to_board=Negative) {
     if (active_pin != null) {
         let parent_id = GeneratorObject.UIObject.get_pin_parent(pin_id);
-        console.log(parent_id, pin_id, active_pin)
+        // console.log(parent_id, pin_id, active_pin)
     
         if (active_pin.game.position === GeneratorObject.PinObject.pin_position.base) 
         {   
-            GeneratorObject.UIObject.remove_from_base(parent_id, pin_id, send_to_board, pin_html);
+            let pin_html = getPinInfo(active_pin.player, active_pin).pin_html;
+            
+            GeneratorObject.UIObject.remove_from_base(parent_id, pin_id, send_to_board, pin_html, bases, GeneratorObject.blocks);
         }
     }
 
@@ -366,6 +399,11 @@ function update_ui_points() {
     });
     document.getElementById("points_v").innerHTML = "Points: " + JSON.stringify(ddict);
     //testing ends
+}
+
+function some_error(player_id) {
+UIObject.display_message("an error occured");
+
 }
 
 function die_action(player_id, die) {
@@ -392,47 +430,54 @@ function die_action(player_id, die) {
         let action = $("#action").val();
         //testing/
         switch(action) {
-            case "move": 
+            case constants.MOVE: 
+                console.log("moving");
                 let active_pin = GeneratorObject.PinObject.get(player_id);
-                pin = UIObject.pin_classes[p_player.number];
-                console.log(pin)
-                
-                if (active_pin.game.position != PinObject.pin_position.board) {
-                    UIObject.display_message(messages.ACTIVE_PIN_NOT_ON_BOARD);
+                if (active_pin == null || active_pin == undefined) {
+                    some_error(player_id);
                     break;
                 }
-                activate_pin(pin, active_pin);
+                let PinInfo = getPinInfo(p_player, active_pin);
+                let pin = PinInfo.pin;
+                let pin_id = PinInfo.pin_id;
+                let pin_html = PinInfo.pin_html;
+                
+                if (active_pin.game.position != PinObject.pin_position.board) {
+                    // UIObject.display_message(messages.ACTIVE_PIN_NOT_ON_BOARD);
+                    // break;
+                }
+                // activate_pin(pin, active_pin);
                 remove_from_base(pin_id, active_pin);
-                let holder = container.children().children(pin_id);
-                console.log("holder", holder);
+                let holder = container.children().children(append_attr( pin_id));
                 let default_pin = active_pin.game.start_block;
                 
                 // let current_box_id = holder.length == 0 ? default_pin : holder.parent().attr("id").replace("#");
                 
                 // current box on the board logic
                 let current = holder.length == 0 ? default_pin : holder.parent().attr("id").replace("#");
-                console.log("ludo 191", current);
                 let current_base = (current == default_pin) ? bases[p_player.number] : holder.parent().attr("id").replace("#").substring(0,1);
                 
-                
-                console.log("Total of Dice: " + (die ));
-                
                 let res = MovementObject.move(current, die, 0, current_base, no_per_base, bases, GeneratorObject.blocks, p_player);
-                console.log(JSON.stringify(res))
                 current = res.point;
                 current_base = res.base;
                 UIObject.ui_move(pin_html, pin_id, container, res.starting_point, (die), no_per_base, res.starting_base, bases, GeneratorObject, p_player)
                 //remove die
                 UIObject.force_remove(current_die.title);
                 break;
-            case "remove":
-                if (die == 6 || die == 16 || die == 2) {
+            case constants.REMOVE:
+                if (allowed_no.includes(die)) {
                     let active_pin = GeneratorObject.PinObject.get(player_id);
-                    pin = UIObject.pin_classes[p_player.number];
-                    console.log("active pin", active_pin)
-                    activate_pin(pin, active_pin);
-                    // alert("No six");
+                    if (active_pin == null || active_pin == undefined) {
+                        some_error(player_id);
+                        break;
+                    }
+                    let PinInfo = getPinInfo(p_player, active_pin);
+                    let pin = PinInfo.pin;
+                    let pin_id = PinInfo.pin_id;
+                    // activate_pin(pin, active_pin);
+                    // alert("No six" + pin_id);
                     if (active_pin.game.position == PinObject.pin_position.base) {
+
                         remove_from_base(pin_id, active_pin, Postive);
                         //remove die
                         UIObject.force_remove(current_die.title);
@@ -449,7 +494,7 @@ function die_action(player_id, die) {
                 }
                 
                 break;
-            case "save":
+            case constants.SAVE:
                 let pins_on_board = PinObject.get_pins_on_board(p_player.id);
                 if (!pins_on_board.empty && p_player.game.saveable_point > 0 ) {
                     p_player.game.points = p_player.game.points + (die);
@@ -478,6 +523,37 @@ function die_action(player_id, die) {
         }
         
     }, 000);
+}
+
+function append_attr(value, type="id") {
+    switch (type) {
+        case constants.ID:
+            if (!value.toString().startsWith("#")) {
+                value = "#" + value;
+            }
+            return value
+        case constants.CLASS:
+        if (!value.toString().startsWith(".")) {
+                value = "." + value;
+            }
+            return value
+        default:
+            break;
+    }
+
+}
+
+//function to update pin info
+function getPinInfo(player, active_pin, attr=false){
+    let pin = (attr) ? append_attr(UIObject.pin_classes[player.number], "class") : UIObject.pin_classes[player.number];
+    let pin_id = (attr) ? append_attr(active_pin.game.pin_id) : active_pin.game.pin_id;
+    let pin_html = UIObject.create_element("div",{ "z-index": 2, "position": "absolute" },()=> {
+        
+        pin_tapped(undefined, constants.GENERATED, pin_id);
+
+    }, "", pin_id, pin);
+    // console.log("pin info",pin_html)
+    return { pin: pin, pin_id: pin_id, pin_html: pin_html }
 }
 
 

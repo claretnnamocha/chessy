@@ -11,11 +11,18 @@ class Generator{
     active_player = 0;
     PointsObject = undefined;
     DiceObject = undefined;
+    mode_type = undefined;
+    nth_val = undefined;
+    winner = undefined;
+    game_status = game_status.STARTING;
 
-    constructor(no_of_bases, container, base_classes) {
+    constructor(no_of_bases, container, base_classes, mode_type, nth_val) {
         this.no_of_bases = no_of_bases;
         this.container = container;
         this.base_classes = base_classes;
+        this.mode_type = mode_type;
+        this.nth_val = nth_val;
+        
     }
     
     getPlayerObject() {
@@ -42,12 +49,14 @@ class Generator{
         console.log("initializing")
         // on initialization create player and pins objects
         this.PlayerObject = new Players(this);
-        this.PinObject = new Pins(this, this.no_of_bases);
+        this.PinObject = new Pins(this, this.no_of_bases, this.mode_type, this.nth_val);
         this.MoveObject = new Movement(this);
         this.DiceObject = new Dice(this);
         this.UIObject = new UserInterface(this);
         this.PointsObject = new Points(this);
-        this.DiceObject = new Dice(this);console.log("initialized")
+        this.DiceObject = new Dice(this);
+        this.set_game_status(game_status.ONGOING);
+        console.log("initialized");
     }
     create_block(info) {
         // Generator.blocks.push(info.id);
@@ -96,15 +105,19 @@ class Generator{
         
     }
 
-    get(block_id = undefined) {
+    get(block_id = undefined, player_id=undefined) {
         // gets activated block
         let block = undefined;
         let keys = Object.keys(this.blocks);
         if (block_id == undefined) {
             for(let i = 0; i < keys.length; i++) {
-                if (this.blocks[keys[i]].game.active != Negative) {
+                if (player_id != undefined && (this.blocks[keys[i]].game.active != Negative && this.blocks[keys[i]].game.owner == player_id )) {
                     block = this.blocks[keys[i]];
-                    return block;
+                    break;
+                }
+                else if (player_id == undefined && this.blocks[keys[i]].game.active != Negative) {
+                    block = this.blocks[keys[i]];
+                    break;
                 }
             }
             return;
@@ -152,5 +165,75 @@ class Generator{
             console.log("block " + block_id + " activated. Owned by " + this.blocks[block_id].game.owner);
         }
 
+    }
+
+    remove_pin_from_block(block_id, pin_id) {
+        this.blocks[block_id].pins = this.blocks[block_id].pins.filter(pin => pin.game.pin_id !=pin_id );
+    }
+
+    get_blocks_on_side( block_id, on_side=side.RIGHT, nth_val = 0, player_id) {
+        let block = this.get(block_id);
+        let player = this.PlayerObject.get(player_id);
+        let keys = Object.keys(this.blocks);
+        let index = keys.indexOf(block_id);
+        
+        let counter = 0;
+        let blocks = [];
+        switch(on_side) {
+            case side.LEFT:
+                index = index -1;
+                if (index == -1) {
+                    index = keys.length - 1;
+                }
+                for (let i = index; i >= 0;) {
+                    //end loop if nth blocks has been gotten
+                    if (nth_val != 0 && counter == nth_val) break;
+                    //if nth val is supplied and at last block, continue getting other block
+                    if (nth_val != 0 && i == 0) {
+                        
+                        i = keys.length - 1;console.log("here", i, keys.length - 1, keys[55])
+                        blocks.push(keys[0]);
+                        counter++;
+                    }
+                    if (keys[i] != undefined) blocks.push(keys[i]);
+                    i--; counter++;
+                }
+                break;
+            case side.RIGHT:
+                    index = index + 1;
+                // if (index == -1) {
+                //     index = keys.length - 1;
+                // }
+                let keys_last_index = keys.length - 1;
+                for (let i = index; i < keys.length;) {
+                    if (nth_val != 0 && counter == nth_val) break;
+
+                    if (nth_val != 0 && (i == keys_last_index)) {
+                        i = 0;
+                        blocks.push(keys[keys_last_index]);
+                        counter++;
+                    }
+                    blocks.push(keys[i]);
+                    i++; counter++;
+                }
+                break;
+            default:
+                break;
+        }
+
+        return blocks;
+    }
+
+    set_winner(player_id) {
+        this.winner = player_id;
+        this.set_game_status(game_status.ENDED);
+    }
+
+    set_game_status(status) {
+        this.game_status = status;
+    }
+
+    get_game_status() {
+        return this.game_status;
     }
 }
