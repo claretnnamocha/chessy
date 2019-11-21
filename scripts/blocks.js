@@ -35,11 +35,32 @@ class Blocks {
         console.log("Blocks initialized.")
     }
 
+    override(action, value, player_id) {
+        let player = this.PlayerObject.get(player_id);
+        switch (action) {
+            case publish_action.acquire_block:
+                console.log("Die received ", value);
+                this.acquire_block(value.block_id, value.player_id, value.base, value.from_system);
+                break;
+            case publish_action.die_click:
+                this.action(value.player_id, value.die, value.action);
+                break;
+            case publish_action.dice_roll_prepare:
+                this.prepare(value.player_id);
+                break;
+            case publish_action.empty_dice:
+                this.empty_dice(value.player_id);
+                break;
+            default:
+                break;
+        }
+    }
+
     create_block(data) {
         // Generator.blocks.push(info.id);
         
         //create block and assign value
-        this.blocks[""+data.id+""] = data;
+        this.blocks[data.id] = data;
         
         // console.log(JSON.stringify(Generator.blocks));
         // this.blocks.[info.id] = info 
@@ -107,6 +128,7 @@ class Blocks {
                             else if (this.block_tapped == 2) {
                                 // alert("double tap")
                                 this.acquire_block(id, this.GeneratorObject.get_player(), bases[base]);
+                                this.activate_block(id, this.GeneratorObject.get_player());
                             }
                             
                             this.block_tapped = 0;
@@ -115,8 +137,6 @@ class Blocks {
                         
                     }
                     this.block_tapped ++;
-                    
-                    
                     
                     e.stopPropagation();
                 }, false);
@@ -176,7 +196,7 @@ class Blocks {
     }
 
     remove_pin_from_block(block_id, pin_id) {
-        // console.log("Before ", JSON.stringify(this.blocks[block_id].pins), "pin_id", pin_id);
+        // console.log("Before ", JSON.stringify(this.blocks[block_id].pins), "pin_id", pin_id, block_id);
         this.blocks[block_id].pins = this.blocks[block_id].pins.filter(pin => pin.game.pin_id !=pin_id );
         // console.log("After ", JSON.stringify(this.blocks[block_id].pins))
     }
@@ -270,6 +290,10 @@ class Blocks {
             this.blocks[block_id].game.owner = player_id;
             this.PlayerObject.update_points(player_id, parseInt(player.game.points) - parseInt(price));
             console.log("block " + block_id + ". Owned by " + this.blocks[block_id].game.owner);
+
+            if (!from_system && this.GeneratorObject.get_player() == player_id) {
+                this.GeneratorObject.publish({ block_id: block_id, player_id: player_id, base: base, from_system: from_system }, publish_action.acquire_block, publish_source.block);
+            }
         }
         else if (player.game.points < price) {
             this.UIObject.display_message(messages.NOT_ENOUGH_POINTS);
@@ -282,9 +306,11 @@ class Blocks {
         let keys = Object.keys(this.blocks);
         let player = this.PlayerObject.get(player_id);
         let pin_id = this.PinObject.get_player_pins(player_id)[0]
+        console.log("pin_id", pin_id);
         let current_pin = this.PinObject.get(undefined, pin_id);
         
-        let start_block = this.get_safe_zone_blocks(base);
+        //using pin to get starting block
+        let start_block = current_pin.game.start_block;
         
         let index = keys.indexOf(start_block);
         let side_blocks = this.get_blocks_on_side(start_block,side.RIGHT, this.no_of_blocks, player_id);
@@ -390,7 +416,7 @@ class Blocks {
 
         let start_block = this.get(start_block_id);
         let next_blocks = [start_block_id];
-        // console.log("start block wall", start_block)
+        console.log("start block wall", start_block)
         let current_pin = this.PinObject.get(undefined, pin_id);
         if (start_block == undefined || start_block == null) {
             return;
@@ -406,14 +432,17 @@ class Blocks {
             }
             
         }
-
-        for (let i = 0; i <= len; i++) {
+        
+        let i = 0;
+        console.log("I is", i, " len", len);
+        while (i < len) {
+            console.log("I is", i, " len", len, this.GeneratorObject.get_mode_of_attack());
             //loop not functional
             let block_id = next_blocks[i];
 
 
             // console.log("Checking Wall",start_block.id,  start_block.game.wall, current_pin.player.id)
-            switch(this.GeneratorObject.mode_of_attack) {
+            switch(this.GeneratorObject.get_mode_of_attack()) {
                 case attack_mode.LUDO:
                     let result = this.get_pins_on_block(block_id, pin_id);
                     // console.log("2 Wall Check", result);
@@ -434,17 +463,22 @@ class Blocks {
                             let player = this.PlayerObject.get(start_block.game.wall.owner);
                             //do armour vs level here
                             // 
-                            console.log("Wall here", start_block, current_pin.player.id)
+                            
                             path.clear = this.wall_check(block_id, pin_id);
                             if (path.clear == Negative) path.blocked_at.push(block_id);
+                            console.log("Wall here", start_block, current_pin.player.id, " result", path);
                         }
                     }
                     break;
                 default:
                     break;
             }
-        }
 
+            i++
+        }
+        
+        if (path.blocked_at.length > 0) {  path.clear = Negative }
+        console.log("Result",path )
         return path;
 
     }
@@ -464,10 +498,11 @@ class Blocks {
                     result = Negative;
                 } 
                 else if (block.game.wall.level <  current_pin.game.armour) {
-                    
+                    console.log("wall is less");
                     this.PinObject.update_pin_armour(pin_id, (current_pin.game.armour - block.game.wall.level));
                     this.destroy(block_id, pin_id, constants.BLOCK);
                     result = Neutral;
+                    
                 }
                 else if (block.game.wall.level ==  current_pin.game.armour) {
                     console.log("wall equal");
@@ -477,6 +512,7 @@ class Blocks {
                 break;
             default: break;
         }
+        console.log("Wall Check Immediate res ", result);
         return result;
         
     }
@@ -591,10 +627,12 @@ class Blocks {
             case constants.BLOCK:
                 console.log("wall lost to ", pin_id);
                 this.update_wall_level(block_id, 0);
+                this.UIObject.apply_css(block_id, undefined, { background: "white", color: "black" });
                 break;
             case constants.TRAP:
                 console.log("trap lost to ", pin_id);
                 this.update_trap_level(block_id, 0);
+                this.UIObject.apply_css(block_id, undefined, { background: "white", color: "black" });
                 break;
         
             default:

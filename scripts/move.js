@@ -30,12 +30,33 @@ class Movement {
         //total travel distance for pin
         let total_travel_distance = die;
         let path_clear = Neutral;
+
         
-        if (!this.GeneratorObject.make_checks(active_pin, 'move', die)) {
+        if (!this.GeneratorObject.make_checks(active_pin)) {
             return;
         }
 
-        
+        let next_block = this.GeneratorObject.BlocksObject.get_blocks_on_side(active_pin.game.block, side.RIGHT, 1);
+        console.log("Active pin state", active_pin.game.state);
+        if (active_pin.game.state == this.PinObject.pin_state.stopped) {
+            let result = this.GeneratorObject.BlocksObject.check_path(next_block,undefined, active_pin.game.pin_id, 1);
+            path_clear = result.clear;
+            console.log("Pin Already Stopped", result)
+            if (result.clear == Negative ) {
+                if (die != undefined && this.GeneratorObject.get_allowed_numbers().indexOf(die) == -1) {
+                    this.GeneratorObject.UIObject.display_message(messages.REQUIRED_6);
+                    return;
+                }
+                else {
+                    path_clear = Positive;
+                }
+                
+            }
+            else if(result.clear == Neutral) {
+                //wall isnt present anymore
+                this.PinObject.update_pin_state(active_pin.game.pin_id, this.PinObject.pin_state.moving);
+            }
+        }
 
         if (active_pin.game.returned == Positive) {
             //pin has returned
@@ -58,11 +79,11 @@ class Movement {
             
         }
 
-        if (this.GeneratorObject.get_mode_type() != mode.LUDO) {
-            let next_block = this.GeneratorObject.BlocksObject.get_blocks_on_side(active_pin.game.block, side.RIGHT, 1);
-            // console.log("2 wall", next_block)
+        if (this.GeneratorObject.get_mode_type() == mode.LUDO) {
+            
             let result = this.GeneratorObject.BlocksObject.check_path(next_block,undefined, active_pin.game.pin_id, die);
             console.log("2 wall Result", result)
+            path_clear = result.clear;
             if (result.clear == Negative && this.GeneratorObject.get_allowed_numbers().indexOf(die) == -1) {
                 // && this.GeneratorObject.get_allowed_numbers().indexOf(die) == -1
                 let blocked_at = result.blocked_at;
@@ -73,7 +94,7 @@ class Movement {
                 }
                 
             }
-            else {
+            else if(result.clear == Negative && this.GeneratorObject.get_allowed_numbers().indexOf(die) != -1) {
                 path_clear = Positive;
             }
         }

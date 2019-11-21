@@ -7,6 +7,8 @@ class UserInterface {
     //to be used in returning the pin to base
     pin_default = {}
 
+    last_message = "";
+
     
     constructor(GeneratorObject){
         this.GeneratorObject = GeneratorObject;
@@ -20,7 +22,17 @@ class UserInterface {
         console.log("UI initialized.");
     }
 
-    display_message(message, type=Neutral) {
+    override(action, value) {
+        let player = this.GeneratorObject.PlayerObject.get(value.player_id);
+        switch (action) {
+            case publish_action.display_message:
+                // console.log("in UI messages")
+                this.display_message(value.message, value.type, false, true, value.player_id);
+                break;
+        }
+    }
+
+    display_message(message, type=Neutral, emit_message=false, is_emitted_message=false, message_from=this.GeneratorObject.get_active_player()) {
         // alert(message);
         let message_display = $('#message_display');
         let html_content = this.return_html(undefined,undefined,"span", message)
@@ -39,7 +51,28 @@ class UserInterface {
             default:
                 break;
         }
-        message_display.prepend(html_content + "<br/>");
+        
+        // console.log(html_content);
+        if (emit_message && this.GeneratorObject.get_player() == message_from){
+            // emit_message
+            this.GeneratorObject.publish({ message: message, type: type }, publish_action.display_message, publish_source.ui);
+            // message_display.prepend(html_content + " <br/>");
+        } 
+        else {
+            
+            if (this.GeneratorObject.get_player() == message_from) {
+                if (html_content != this.last_message) {
+                    // message_display.prepend(html_content + " <br/>");
+                    this.last_message = html_content;
+                } 
+            }   
+        }
+
+        if (is_emitted_message && this.GeneratorObject.get_player() != message_from) {
+            // message_display.prepend(html_content + " <br/>");
+        }
+        message_display.prepend(html_content + " <br/>");
+
     }
 
     get_logic_board(log=true, section=constants.PIN, BlocksObject) {
@@ -108,32 +141,31 @@ class UserInterface {
                 }
                 
                 break;
+        case constants.GENERATOR:
+                res = this.GeneratorObject.return_basic_info();
+                break;
         default:
             break;
         }
         if (log) console.log("Board:\n", res);
         return log;
     }
-
-    
-
     update_pins(curent_point, old_point, player, blocks, bases, current_base, old_base) {
         let old_box_id =  old_base + old_point;
         let box_id = (current_base + curent_point);
-        // console.log("UPDATE PINS", curent_point, old_point, player, blocks, bases, current_base, old_base)
+        // console.log("UPDATE PINS", curent_point, old_point, player, blocks, bases, current_base, old_base);
         this.PinObject.update_pins(old_box_id, box_id, player, blocks, bases);
     }
-
     remove_from_base(parent_id, pin_id, send_to_board=Negative, pin_html=undefined, blocks=undefined, bases=undefined) {
-        console.log("pin_id", pin_id);
+        
         let _pin_id = this.append_attr(pin_id);
         let active_pin = this.PinObject.get(undefined, pin_id);
-        
-        if (!this.GeneratorObject.make_checks(active_pin,'remove-from-base')) {
-            // console.log("UI failed")
+        console.log("pin_id", pin_id, active_pin);
+        if (!this.GeneratorObject.make_checks(active_pin, constants.REMOVE_FROM_BASE, undefined, undefined, true)) {
+            console.log("UI failed")
             return;
         }
-        console.log("pin_id", pin_id);
+        console.log("pin_id", pin_id, active_pin);
         let player = active_pin.player;
         
         let _parent_id = this.append_attr(parent_id);
@@ -177,7 +209,6 @@ class UserInterface {
         }
 
     }
-
     get_pin_parent(pin_id) {
         pin_id = this.append_attr(pin_id);
 
@@ -191,7 +222,6 @@ class UserInterface {
             return value
         }
     }
-
     force_remove(value, type="id", pin_id=undefined) {
         let element = undefined;
         let active_pin = (pin_id != undefined) ? this.PinObject.get(undefined, pin_id) : null;
@@ -227,18 +257,15 @@ class UserInterface {
                 break;
         }
     }
-
     remove_pin(id, id_type="id", parent, parent_type, active_pin) {
         let element = $(this.append_attr(parent, parent_type)).children(this.append_attr(active_pin.game.block)).children(this.append_attr(id, id_type));
         if (element != undefined || element != null) {
             element.remove();
         } 
     }
-
     replicate(render_on, html_content) {
         $(render_on).append(html_content);
     }
-
     return_html(id=undefined, class_name=undefined, element=undefined, content=undefined) {
         let html_content = undefined;
         if (id != undefined && class_name !=undefined) {
@@ -256,9 +283,7 @@ class UserInterface {
         // console.log(html_content)
         return html_content;
     }
-
     create_element(element_type="button", styling={}, action=undefined, inner_text, element_id=undefined,element_class=undefined) {
-        // alert("Createele")
         let element = document.createElement(element_type);
         if (action != undefined) {
             element.onclick = () => {
@@ -279,7 +304,6 @@ class UserInterface {
         // console.log("returning element ", element_type, element)
         return element;
     }
-
     apply_css(_element, type=constants.ID, styling={}, element_type=constants.HTML) {
         let element = (element_type == constants.GENERATED) ? _element : undefined;
         if (element_type == constants.HTML) {
@@ -301,6 +325,7 @@ class UserInterface {
         }
         
     }
+
 }
 
 class ui_move {
@@ -318,7 +343,7 @@ class ui_move {
         this.die_value = die_value;
         this.id = id;
         this.path_clear = path_clear;
-        console.log("Path Clear ", this.path_clear)
+        // console.log("Path Clear ", this.path_clear)
         // this.ui_move(pin_html, pin_id, container, current, die_value, no_per_base, current_base, bases, stopping_block, GeneratorObject, player);
     }
 
@@ -334,9 +359,6 @@ class ui_move {
         //use interval to move pin class
         //init point on the board
         let init_point = GeneratorObject.MoveObject.convert(current, undefined, no_of_public_blocks, bases, pin_id, no_of_public_blocks).box_point;
-        // console.log("init point " + init_point);
-        // console.log("stop at point " + (init_point + dice_value));
-        //current point on the board but controlled by NPB
         //at NPB, point gets reset
         let point = current.replace("#").substring(1);
         //current point on the board ignoring NPB
@@ -345,9 +367,8 @@ class ui_move {
         let base = current_base;
         //next base
         let next_base = (bases.indexOf(base) + 1);
-        //used to clear point 1 of the board
+        //used to manually update/reset info
         let manual_reset = { status:false, value: {} };
-        // GeneratorObject.PinObject.get(player.id);
         
         this.UIObject = GeneratorObject.getUIObject();
         pin_id = this.UIObject.append_attr(pin_id)
@@ -374,7 +395,7 @@ class ui_move {
             }
 
             current_pin = GeneratorObject.PinObject.get(undefined, pin_id);
-            path.clear = Neutral;
+            
 
             if (current_pin.game.safe_zone.trigger == base + parseInt(point)) {
                 //trigger safety for this pin
@@ -396,7 +417,7 @@ class ui_move {
                 console.log("returning Pin safe zone triggered")
                 this.PinObject.update_pin_trigger(pin_id, Positive);
             }
-
+            // console.log(current_pin.game.block, stopping_block)
             //if current pin has reached stopping_block, clear interval
             if (current_pin.game.block == stopping_block) {
                 // container.children(this.append_attr(current_pin.game.block)).find(pin_id).remove();
@@ -432,30 +453,34 @@ class ui_move {
 
             //check if next block has a wall
             // this.GeneratorObject.BlocksObject.get_blocks_on_side(current_pin.game.block, side.RIGHT, 1)
-            //if path is neutral, make checks for next block
-            if (path.clear == Neutral){
-                switch (this.GeneratorObject.get_mode_type()) {
-                    case mode.BASIC:
+            //if path is neutral, make checks for next block && current_pin.game.state != pin_state.stopped
+            console.log("Path ", path.clear)
+            if (path.clear == Neutral ){
+                switch (this.GeneratorObject.get_mode_of_attack()) {
+                    case attack_mode.BASIC:
                         let next_block = this.GeneratorObject.BlocksObject.get_blocks_on_side(current_pin.game.block, side.RIGHT, 1);
-                        path.clear = this.GeneratorObject.BlocksObject.check_path(next_block, undefined, pin_id, undefined, 1);
-                        break;
+                        console.log("Next block", next_block);
+                        path.clear = this.GeneratorObject.BlocksObject.check_path(next_block, undefined, pin_id, 1).clear;
+                        console.log("Next Path", path);
+                        if (path.clear == Negative) {
+                            clearInterval(movement);
+                            return;
+                        }
+                        
                     default:
                         break;
                 }
                 
             } 
-            else {
-                
-            }
+            
 
             //if pin's path isnt clear i.e was stopped e.g by wall, stop interval
-            if (current_pin.game.state == pin_state.stopped ) {
+            if (current_pin.game.state == pin_state.stopped) {
                 if (this.GeneratorObject.get_allowed_numbers().indexOf(this.die_value) == -1) {
                     if (path.clear == Neutral) {
-                    console.log("messages 6")
-                    this.UIObject.display_message(messages.REQUIRED_6)
+                        this.UIObject.display_message(messages.REQUIRED_6)
                     }
-                    if (this.GeneratorObject.mode_of_attack == attack_mode.LUDO) {
+                    if (this.GeneratorObject.get_mode_of_attack() == attack_mode.LUDO) {
                         this.UIObject.get_logic_board(true, constants.PIN, BlocksObject);
                     }
                     else {
@@ -570,6 +595,7 @@ class ui_move {
                 }
                 //update pin info
                 if(blocks != undefined && player != undefined) {
+                    // console.log
                     this.UIObject.update_pins((parseInt(point) + 1), point, player, blocks, bases, base, base);
                 }
 
@@ -581,6 +607,7 @@ class ui_move {
             
             //increase the point on the board and the logical board
             board_point++;
+            path.clear = Neutral;
             
             
         }, 300);

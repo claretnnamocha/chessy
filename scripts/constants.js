@@ -41,7 +41,11 @@ constants = {
     MOVE: 'move',
     REMOVE_FROM_BASE: 'remove-from-base',
     BASES: 'bases',
-    OWNER: 'owner'
+    OWNER: 'owner',
+    GENERATOR: 'generator',
+    DAMAGE: 'damage',
+    UPGRADE: 'upgrade',
+    LOST: 'lost',
 }
 
 mode = {
@@ -53,7 +57,7 @@ mode = {
 attack_mode = {
     LUDO: 0,
     BASIC: 1,
-    ETC: 2
+    COMBO: 2
 }
 
 side = {
@@ -67,10 +71,30 @@ game_status = {
     ENDED: 2
 }
 
+// len 13
 publish_action = {
+    //pin
     pin_create: 0,
+    pin_get: 4,
+    pin_activate: 5,
+    //player
     player_create: 1,
-    dice_roll: 2
+    //dice
+    dice_roll: 2,
+    die_click: 6,
+    dice_roll_prepare: 7,
+    empty_dice: 12,
+    //ui
+    display_message: 3,
+    //Point
+    set_trap: 8,
+    increase_armour: 9,
+    increase_block_level: 10,
+    point_use: 11,
+    //block
+    acquire_block: 13,
+
+
 }
 
 publish_source = {
@@ -123,7 +147,7 @@ let player_id = undefined;
 let pins_per_player = 4;
 
 //initialize Generator
-let GeneratorObject = new Generator(no_per_base, container, base_classes, bases, mode.LUDO, 2);
+let GeneratorObject = new Generator(no_per_base, base_classes, bases, mode.PIN, 2);
 
 //init move object
 let MovementObject = undefined;
@@ -138,17 +162,27 @@ let BlocksObject = undefined;
 
 function init() {
     GeneratorObject.init();
-    // setTimeout(() => {
-        MovementObject = GeneratorObject.getMoveObject();
-        UIObject = GeneratorObject.getUIObject();
-        PlayerObject = GeneratorObject.getPlayerObject();
-        PointsObject = GeneratorObject.getPointsObject();
-        DiceObject = GeneratorObject.getDiceObject();
-        PinObject = GeneratorObject.getPinObject();
-        BlocksObject = GeneratorObject.getBlocksObject();
-        console.log("loaded")
-    // }, 1000);
+    MovementObject = GeneratorObject.getMoveObject();
+    UIObject = GeneratorObject.getUIObject();
+    PlayerObject = GeneratorObject.getPlayerObject();
+    PointsObject = GeneratorObject.getPointsObject();
+    DiceObject = GeneratorObject.getDiceObject();
+    PinObject = GeneratorObject.getPinObject();
+    BlocksObject = GeneratorObject.getBlocksObject();
+    console.log("loaded");
     GeneratorObject.BlocksObject.init_blocks(container);
+    //
+
+    for (let i = 0; i < container.children().length; i++) {
+        // container.children()[i].attr("id");
+        // console.log(("#" + container.children()[i].id))
+        // container.children()[i].text();
+        
+        //div [clear:both] has not id
+        if (container.children()[i].id != '') {
+            document.getElementById(container.children()[i].id).innerHTML = "<span style='z-index:0'>" + container.children()[i].id + "</span>";
+        } 
+    }
 }
 
  

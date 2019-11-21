@@ -24,9 +24,11 @@ class Generator{
     
     allowed_no = [6];
     player_no = undefined;
+    player_info = undefined;
     local_play = false;
 
     bases = ["red_pin", "blue_pin", "green_pin", "yellow_pin"];
+    base_pins = ["red_pin", "blue_pin", "green_pin", "yellow_pin"];
 
     publish_action = {
         pin_create: 0
@@ -43,10 +45,9 @@ class Generator{
     }
     
 
-    constructor(no_per_base, container, base_classes, bases, mode_type, nth_val) {
+    constructor(no_per_base, base_classes, bases, mode_type, nth_val) {
         // this.id = id;
         this.no_per_base = no_per_base;
-        this.container = container;
         this.base_classes = base_classes;
         this.nth_val = nth_val;
         this.mode_type = mode_type;
@@ -63,13 +64,7 @@ class Generator{
     getMoveObject() {
         return this.MoveObject;
     }
-    getUIObject() {
-        // console.log("Gen UIObject", this.UIObject);
-        // if (this.UIObject == undefined) {
-        //     this.init();
-        //     console.log("Gen UIObject", this.UIObject);
-        // }
-        
+    getUIObject() {    
         return this.UIObject;
     }
     getPointsObject() {
@@ -120,11 +115,30 @@ class Generator{
         this.player_no = player_no;
     }
 
+    set_starting_player(player_id) {
+        console.log("Starting player ", player_id);
+        this.active_player = player_id;
+    }
+
+    set_game_container(container) {
+        this.container = container;
+    }
+
+    set_player_info(player_info) {
+        this.player_info == player_info;
+    }
+
     add_to_bases(data) {
         this.bases = this.bases.concat(data);
     }
+    add_to_base_pins(data) {
+        this.base_pins = this.base_pins.concat(data);
+    }
 
     
+    get_id() {
+        return this.id;
+    }
     get_bases() {
         return this.bases;
     }
@@ -135,10 +149,17 @@ class Generator{
     get_local_play() {
         return this.local_play;
     }
+
+    get_base_pins() {
+        return this.base_pins;
+    }
+    get_player_info() {
+        return this.player_info;
+    }
     
 
     get_active_player() { 
-        //get from server gen object
+        //get from server
         // emit("GA-", 1);
         // let players = this.getPlayerObject().players;
         // let keys = Object.keys(players);
@@ -148,35 +169,41 @@ class Generator{
     }
 
     set_active_player(custom=undefined) {
+        let players = this.getPlayerObject().get_players();
+        let prev_player = (players[this.active_player]);
+        prev_player = this.PlayerObject.get(prev_player);
+        console.log("Prev Player ", prev_player)
         if (custom != undefined) {
+            console.log("Setting Active player", custom);
             this.active_player = custom;
         }
         else {
-            if (this.get_local_play()) {
-                let players = this.getPlayerObject().get_players();
-                let prev_player = (players[this.active_player]);
-                // console.log("setting active", players, this.active_player, Object.keys(players).length, (this.active_player >= Object.keys(players).length - 1));
-                if (this.active_player >= players.length - 1) {
-                    // console.log("resetting active")
-                    this.active_player = 0;
-                }
-                else {
-                    this.active_player ++;
-                }
-                let player = (players[this.active_player]);
-                
-                //testing
-                console.log("-----Next Player-----")
-                console.log("switching",players,player)
-                document.getElementById("player_value").innerHTML = "<div>Current player: " + player.info.name + " <span style='color: " + (player.game.pin).toString().split("_")[0] + "'>" + player.game.pin + "</span> ||| prev player:" + prev_player.info.name + " prev pin: <span style='color: " + (prev_player.game.pin).toString().split("_")[0] + "'>" + prev_player.game.pin + "</span></div>";
-                ///testing
+            if (!this.get_local_play()) {
+                emit(1, { player_id: this.get_player() }, "M-SAP-");
+            }
+            
+            // console.log("setting active", players, this.active_player, Object.keys(players).length, (this.active_player >= Object.keys(players).length - 1));
+            if (this.active_player >= players.length - 1) {
+                // console.log("resetting active")
+                this.active_player = 0;
             }
             else {
-                emit("SA-", 1);
+                this.active_player ++;
             }
             
-            
         } 
+
+        let player = players[this.active_player];
+        console.log(player, this.active_player);
+        player = this.PlayerObject.get(player);
+        
+        //testing
+        console.log("-----Next Player-----")
+        console.log("switching",players,player)
+        document.getElementById("player_value").innerHTML = "<div>Current player: " + player.info.name + " <span style='color: " + (player.game.pin).toString().split("_")[0] + "'>" + player.game.pin + "</span> ||| prev player:" + prev_player.info.name + " prev pin: <span style='color: " + (prev_player.game.pin).toString().split("_")[0] + "'>" + prev_player.game.pin + "</span></div>";
+        //remove ui reminants
+        $("#pins_value").children().remove();
+        ///testing
     }
 
     get_player() {
@@ -205,21 +232,39 @@ class Generator{
     }
 
     return_basic_info() {
-        let info = { game_status: this.get_game_status(), PlayerObject: this.getPlayerObject() }
+        let info = { 
+            game_status: this.get_game_status(), PlayerObject: this.getPlayerObject(), active_player: this.get_active_player(), player_id: this.get_player()
+        }
         return info;
     }
 
-    make_checks(active_pin, exclude=undefined, die_value=undefined) {
-        let position_excluded = [constants.MOVE, constants.REMOVE_FROM_BASE];
+    make_checks(active_pin=undefined, value_to_check=constants.PIN, die_value=undefined, block=undefined, reversed=false) {
 
-        if (active_pin == null || active_pin == undefined) {
-            //error occured
-            this.UIObject.display_message(messages.ERROR_OCCURED);
-            return false;
+
+        //
+        if (value_to_check != undefined && value_to_check == constants.PIN || value_to_check == constants.ALL) {
+            if (active_pin == null || active_pin == undefined) {
+                //error occured
+                
+                this.UIObject.display_message(messages.ERROR_OCCURED);
+                return false;
+            }
         }
+        
 
-        if (exclude !=undefined && position_excluded.indexOf(exclude) == -1) {
+        if (value_to_check != undefined && value_to_check == constants.BLOCK || value_to_check == constants.ALL) {
+            // console.log("Block check", block)
+            if (block == null || block == undefined) {
+                this.UIObject.display_message(messages.ERROR_OCCURED);
+                return false;
+            }
+        }
+        
+
+        if (value_to_check != undefined && reversed && value_to_check != constants.REMOVE_FROM_BASE || value_to_check == constants.ALL) {
+            //if excluded, removing from base would be excluded from this check
             //if pin not on board, stop
+            // console.log("REMOVE_FROM_BASE", constants.REMOVE_FROM_BASE, value_to_check)
             if (active_pin.game.position != this.PinObject.pin_position.board) {
                 this.UIObject.display_message(messages.ACTIVE_PIN_NOT_ON_BOARD);
                 return false;
@@ -238,19 +283,12 @@ class Generator{
                 break;
         }
 
-        //check pin state
-        if (exclude !=undefined && exclude == constants.MOVE) {
-            if (active_pin.game.state == this.PinObject.pin_state.stopped && die_value != undefined && allowed_no.indexOf(die_value) == -1) {
-                this.UIObject.display_message(messages.REQUIRED_6);
-                return false;
-            }
-        }
 
         return true;
     }
 
     publish(value, publish_action, publish_source) {
-        console.log("Publish ", value, publish_action, publish_source);
+        // console.log("Publish ", value, publish_action, publish_source);
         if (!this.local_play) {
             value.player_id = this.get_player();
             value.source = publish_source;
@@ -261,22 +299,32 @@ class Generator{
     }
 
     update_generator(data, len=1) {
-        console.log("Data", data, " len", len, this.get_player());
+        // console.log("Data", data, " len", len, this.get_player());
         for (let i = 0; i < len; i++) {
-            if (data[i].value.player_id != this.get_player()) {
-                console.log("Updating")
+            if (parseInt(data[i].value.player_id) != (this.get_player())) {
+                
                 let publish_action = data[i].key;
                 let value = data[i].value;
+                console.log("Updating ", publish_action, value)
                 switch(value.source) {
                     case publish_source.pin:
                         this.PinObject.override(publish_action, value);
-                        console.log(value);
+                        // console.log(value);
                         break;
                     case publish_source.player:
                         this.PlayerObject.override(publish_action, value)
                         break;
                     case publish_source.dice:
                         this.DiceObject.override(publish_action, value);
+                        break;
+                    case publish_source.ui:
+                        this.UIObject.override(publish_action, value);
+                        break;
+                    case publish_source.point:
+                        this.PointsObject.override(publish_action, value);
+                        break;
+                    case publish_source.block:
+                        this.BlocksObject.override(publish_action, value);
                         break;
                     default:
                         break;
