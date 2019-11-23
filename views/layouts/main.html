@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title> Chessy </title>
+    <script type="text/javascript" src="/assets/js/socket.io.js"></script>
+    <script type="text/javascript">
+    const socket = io('/', { transports: ['websocket'] })
+    let game_name = null
+    let player_name = null
+    </script>
+</head>
+
+<body>
+    {{{ body }}}
+</body>
+
+</html>
+<!-- <script type="text/javascript" src="/assets/js/socket.io.js"></script>
+<script type="text/javascript">
+const socket = io('/', { transports: ['websocket'] })
+socket.on('update', (data) => {
+    document.querySelector('#visitors').innerHTML = data
+})
+</script> -->

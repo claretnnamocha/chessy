@@ -1,0 +1,151 @@
+<div class="content">
+    <div class="row">
+        <div class="col-lg-6 col-md-6 col-sm-6">
+            <div class="card card-stats">
+                <div class="card-body ">
+                    <div class="row">
+                        <div class="col-5 col-md-4">
+                            <div class="icon-big text-center icon-warning">
+                                <i class="nc-icon nc-globe text-warning"></i>
+                            </div>
+                        </div>
+                        <div class="col-7 col-md-8">
+                            <div class="numbers">
+                                <p class="card-category">Live Visitors</p>
+                                <p class="card-title"><span id="live-visitors">0</span>
+                                    <p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer ">
+                    <hr>
+                    <div class="stats">
+                        <i class="fa fa-refresh"></i> Current users on server
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-6 col-sm-6">
+            <div class="card card-stats">
+                <div class="card-body ">
+                    <div class="row">
+                        <div class="col-5 col-md-4">
+                            <div class="icon-big text-center icon-warning">
+                                <i class="nc-icon nc-trophy text-danger"></i>
+                            </div>
+                        </div>
+                        <div class="col-7 col-md-8">
+                            <div class="numbers">
+                                <p class="card-category">Active Players</p>
+                                <p class="card-title"><span id="active-gamers">0</span>
+                                    <p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer ">
+                    <hr>
+                    <div class="stats">
+                        <i class="fa fa-clock-o"></i> Actively gaming
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title"> Game Groups (Active)</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead class=" text-primary">
+                                <th> Name </th>
+                                <th> Number of Players </th>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" id="players" style="display: none">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title"> Firefight </h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead class=" text-primary">
+                                <th> Player name </th>
+                            </thead>
+                            <tbody id="players-table">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+socket.on('connection-update', (visitors) => {
+    document.querySelector('#live-visitors').innerHTML = visitors
+})
+socket.on('game-update', (games) => {
+    let currentGamers = 0;
+    games = JSON.parse(games)
+    let table_body = ''
+    for (type in games) {
+        currentGamers += games[type].onlinePlayers | 0
+        if (games[type].onlinePlayers == 0) {
+            continue
+        }
+        table_body += `
+            <tr>
+                <td class="game-type" style="cursor:pointer"> ${type} </td>
+                <td> ${games[type].onlinePlayers} </td>
+            </tr>
+            `
+    }
+    document.querySelector('#active-gamers').innerHTML = currentGamers
+    document.querySelector('tbody').innerHTML = table_body
+    // document.querySelectorAll('.game-type').forEach((element) => {
+    //     element.onclick = (event) => {
+    //         handle(event.target.innerHTML)
+    //     }
+    // })
+})
+
+handle = (group) => {
+    socket.emit('group-inquiry', group)
+    socket.on('group-details', (details) => {
+        let players_table = ''
+        let players = JSON.parse(details).players
+        if (players.length == 0) {
+            document.querySelector('#players').style.display = 'none'
+            return
+        }
+        players.forEach((player) => {
+            players_table += `
+            <tr>
+                <td> ${player} </td>
+            </tr>
+            `
+        })
+        document.querySelector('#players-table').innerHTML = players_table
+        document.querySelector('#players').style.display = 'block'
+        socket.on('game-update', (games) => {
+            handle(group)
+            return
+        })
+    })
+}
+</script>

@@ -1,0 +1,84 @@
+<style type="text/css">
+input,
+select {
+    display: block;
+}
+
+.form>* {
+    display: block;
+    padding: 10px;
+    width: 80%;
+    margin: 0 auto;
+}
+
+.btn {
+    padding: 8px 10px;
+    margin: 10px auto 0;
+    max-width: 100px;
+}
+
+
+body {
+    overflow-y: hidden;
+}
+
+.container {
+    padding: 30px;
+    border: 1px solid;
+}
+
+section {
+    display: block;
+    width: 50%;
+    margin: 35vh auto 50vh;
+}
+
+.change-name {
+    float: right;
+    color: blue;
+    text-decoration: underline;
+    background: transparent;
+    border: transparent;
+    cursor: pointer;
+}
+.player-name{
+    font-weight: bold;
+}
+</style>
+<script type="text/javascript" src="/assets/js/app.js"></script>
+<section id="player-name">
+    <div class="container">
+        <form class="form">
+            <input type="text" class="name" placeholder="Name . . ." pattern="([a-zA-Z]|-|_)+([a-zA-Z0-9]|-|_){3,}" title="should contain at leat 4 characters and can't start with a number" required>
+            <input type="submit" class="btn" value="Okay">
+        </form>
+    </div>
+</section>
+<section id="game-type" style="display: none;">
+    <div class="container">
+        <form class="form">
+            <div>
+                Player name: <span class="player-name"></span>
+                <input type="button" class="change-name" value="change">
+            </div>
+            <select class="game" required>
+                <option>Mission</option>
+                <option>Firefight</option>
+                <option>Recon</option>
+            </select>
+            <input type="submit" class="btn" value="Play!!">
+        </form>
+    </div>
+</section>
+<section id="game" style="display: none;">
+    <div>
+        Player name: <span class="player-name"></span>
+        <span style="float: right;">Game Type :
+            <b class="game-type"></b>
+        </span>
+    </div>
+    <div class="container">players online : <span class="gamers-count"></span></div>
+</section>
+<script type="text/javascript">
+loadEvents()
+</script>

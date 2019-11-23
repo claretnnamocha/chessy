@@ -1,0 +1,19 @@
+{
+  "name": "socketio-practice",
+  "version": "1.0.0",
+  "description": "A simple socketio app",
+  "main": "index.js",
+  "scripts": {
+    "start" : "node index"
+  },
+  "keywords": [
+    "socketio"
+  ],
+  "author": "Claret Nnamocha <devclareo@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-handlebars": "^3.1.0",
+    "socket.io": "^2.3.0"
+  }
+}
