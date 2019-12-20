@@ -16,7 +16,8 @@ class Points {
             default: this.price * 2
         },
         block: {
-            default: this.price * 2
+            default: this.price * 2,
+            acquire: this.price * 4
         }
     }
 
@@ -64,12 +65,24 @@ class Points {
                 console.log("Case Block [UP]");
                 this.block_action(player_id, block_id, action);
                 break;
+            
             default:
                 break;
         }
         if (this.GeneratorObject.get_player() == player_id) {
             this.GeneratorObject.publish({ type: type, action: action, player_id: player_id, pin_id: pin_id, block_id: block_id }, publish_action.point_use, publish_source.point)
         }
+    }
+
+    get_price(key,value=undefined) {
+        let price = 0;
+        if (value != undefined) {
+            price = this.pricing[key][value]
+        }
+        else {
+            price = this.pricing[key].default;
+        }
+        return price;
     }
 
     pin_action(player_id, pin_id, action) {
@@ -103,18 +116,36 @@ class Points {
                 if (block.game.owner == player_id) {
                     this.increase_block_level(player_id, block);
                 }
-                else {
+                else if (block.game.owner == undefined) {
                     this.UIObject.display_message(messages.PURCHASE_BLOCK_FIRST);
+                }
+                else {
+                    this.UIObject.display_message(messages.NOT_MY_BLOCK);
                 }
                 
                 break;
             case constants.TRAP:
-                if (block.game.owner != undefined) {
+                if (block.game.owner == player_id) {
                     this.set_trap(player_id, block);
                 }
-                else {
+                else if (block.game.owner == undefined) {
                     this.UIObject.display_message(messages.PURCHASE_BLOCK_FIRST);
                 }
+                else {
+                    this.UIObject.display_message(messages.NOT_MY_BLOCK);
+                }
+                break;
+            case constants.TERRAIN:
+                if (block.game.owner == player_id) {
+                    this.set_trap(player_id, block);
+                }
+                else if (block.game.owner == undefined) {
+                    this.UIObject.display_message(messages.PURCHASE_BLOCK_FIRST);
+                }
+                else {
+                    this.UIObject.display_message(messages.NOT_MY_BLOCK);
+                }
+                this.block_action(player_id, block_id, action);
                 break;
             default:
                 break;
@@ -179,6 +210,33 @@ class Points {
         }
         else {
             this.UIObject.display_message(messages.NOT_ENOUGH_POINTS);
+        }
+    }
+
+    trigger_terrain(player_id, status=Neutral) {
+        let player = this.PlayerObject.get(player_id);
+        let result = this.BlocksObject.get_terrain_blocks(player_id);
+        let blocks = result.blocks;
+        if (result.active == Negative){
+            result.active = Neutral;
+        } 
+        else if (result.active == Neutral) {
+            result.active = Negative;
+        }
+
+        setTimeout(() => {
+            
+        }, timeout);
+
+        for (let i = 0; i < blocks.length; i++) {
+            let block = this.BlocksObject.get(blocks[i]);
+            if (block.game.terrain.valid == Neutral) {
+                if (result.active == Negative) result.active = Neutral;
+                block.game.terrain.active = result.active;
+            }
+            else if (block.game.terrain.valid == Negative) {
+                this.BlocksObject.delete_from_terrain_blocks(blocks[i], player_id);
+            }
         }
     }
 

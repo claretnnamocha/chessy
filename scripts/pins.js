@@ -25,10 +25,8 @@ class Pins {
         moving: "moving"
     }
     pin_order = {
-        destroy: 0,
-        attempt: 1,
-        covert: 2,
-        peace: 3
+        offensive: 0,
+        defensive: 1,
     }
 
     bag_items = {
@@ -90,15 +88,16 @@ class Pins {
             //player: holds the information of the current
             //game: holds the information needed by this pin during gameplay
             // let pin_id = player.game.pin + pins_total.toString();
+            
             let pin_id = player.game.pin + id;
             this.pins[pin_id] = {  
                 player: player, 
                 game: 
                 { 
-                    pin_id: pin_id, armour: 1, active: Negative, 
+                    pin_id: pin_id, active: Negative, 
                     block: base + 0, base: base, start_block: base + 3,
                     end_block: base + no_per_base , returned: Negative, position: this.pin_position.base,
-                    state: this.pin_state.dormant, order: this.pin_order.destroy,
+                    state: this.pin_state.dormant, order: this.pin_order.defensive,
                     safe_zone: { triggered: Negative, trigger: base + 1, start: base + safe_zone_start, end: base + no_per_base},
                     info: {
                         bases: 0
@@ -108,6 +107,19 @@ class Pins {
 
                 },
                 bag: {} 
+            }
+
+            switch (this.GeneratorObject.get_mode_of_attack()){
+                case attack_mode.BASIC:
+                    this.pins[pin_id].game.armour = 1;
+                    this.pins[pin_id].game.factors = { agility: agility }
+                    break;
+                case attack_mode.TEIR_1:
+                    this.pins[pin_id].game.factors = pin_factor[pin_id];
+                    this.GeneratorObject.FactorsObject.calc_power(pin_id)
+                    break;
+                default:
+                    break;
             }
 
         }
@@ -140,7 +152,8 @@ class Pins {
         //activating one pin for testing purposes
         // this.pins[Object.keys(this.pins).length - 1].game.active = Positive;
         // this.pins["red_pin"+3].game.active = Positive;
-        if (this.pins["red_pin"+0] != undefined) this.pins["red_pin"+0].game.armour = 2;
+        // if (this.pins["red_pin"+0] != undefined) this.pins["red_pin"+0].game.armour = 2;
+        // if (this.pins["blue_pin"+0] != undefined) this.pins["blue_pin"+0].game.order = this.pin_order.defensive;
         // console.log("PINS", this.pins)   
     }
 
@@ -226,16 +239,16 @@ class Pins {
         });
 
         if (!new_pin_entry){
-            let old_block = blocks[old_box_id];
             //on first run, old_box_id would be nulll/udnefined
             //remove player from previous block if player's pin exists there
             this.GeneratorObject.BlocksObject.remove_pin_from_block(old_box_id,current_pin.game.pin_id);
+            this.GeneratorObject.FactorsObject.reduce_agility(current_pin.game.pin_id);
         }
 
-        this.check_win(current_pin, current_box_id, player, this.mode_type);
-
-        
+        this.check_win(current_pin, current_box_id, player, this.mode_type);  
     }
+
+
 
     check_win(current_pin=undefined, current_box_id=undefined, player, mode_type) {
         // console.log("Check win", mode_type)
@@ -312,7 +325,7 @@ class Pins {
         if (block.pins.length > 1) {
             // alert("block not empty");
            console.log("block not empty")
-            this.strongest_check(blocks, current_box_id, current_pin);
+            this.start_battle(blocks, current_box_id, current_pin);
             
         }   
         if (block.game.trap != undefined) {
@@ -321,7 +334,7 @@ class Pins {
         }
     }
 
-    strongest_check(blocks,current_box_id, current_pin) {
+    start_battle(blocks,current_box_id, current_pin) {
 
         // alert("block not empty");
         let strongest_pin = { pin: undefined, armour: undefined };
@@ -353,7 +366,7 @@ class Pins {
                 // strongest_pin.armour = shifted_pin.game.armour;
                 console.log("PINS ", pins, block.pins, strongest_pin);
                 break;
-            case attack_mode.BASIC:
+            case -4:
                 // check which player has higher armour as to who remains in block
                 strongest_pin = { pin: current_pin.game.pin_id, armour: current_pin.game.armour};
                 strongest_player = current_pin.player.id;
@@ -365,7 +378,7 @@ class Pins {
                     if (element.player.id != strongest_player && element.game.armour > strongest_pin.armour && pins_left > 0) {
                         console.log("Fighting element", element.game.pin_id, element.game.armour, strongest_pin.pin, strongest_pin.armour)
                         
-                        this.update_pin_armour(element.game.pin_id, parseFloat(element.game.armour) - parseFloat(strongest_pin.armour), constants.DAMAGE, this.damage_by(strongest_pin.pin, constants.PIN));
+                        this.update_pin_arsenal(element.game.pin_id, parseFloat(element.game.armour) - parseFloat(strongest_pin.armour), constants.DAMAGE, this.damage_by(strongest_pin.pin, constants.PIN));
                         this.lost(strongest_pin.pin, element.game.pin_id);
                         pins_left--;
                         strongest_pin.pin = element.game.pin_id;
@@ -399,7 +412,7 @@ class Pins {
                         console.log("Fighting strongest", element.game.pin_id, element.game.armour, strongest_pin.pin, strongest_pin.armour)
                         let updated_armour = parseFloat(strongest_pin.armour) - parseFloat(element.game.armour);
                         // console.log("Updated Armour = ", updated_armour);
-                        this.update_pin_armour(strongest_pin.pin, updated_armour);
+                        this.update_pin_arsenal(strongest_pin.pin, updated_armour);
                         strongest_pin.armour = updated_armour;
                         this.lost(element.game.pin_id, strongest_pin.pin);
                         pins_left--;
@@ -407,6 +420,11 @@ class Pins {
                     }
                 }
                 break;
+            default:
+                let result = this.strongest_check(current_pin, block);
+                strongest_player = result.strongest_player;
+                strongest_pin = result.strongest_pin;
+                break
         }
         
         // alert(JSON.stringify(strongest_player));
@@ -424,15 +442,118 @@ class Pins {
         
     }
 
+    strongest_check(current_pin, block, ) {
+        let strongest_pin = { pin: current_pin.game.pin_id };
+        let strongest_player = current_pin.player.id;
+        let pins = block.pins;
+        let pins_left = pins.length;
+        let mode_of_attack = this.GeneratorObject.get_mode_of_attack();
+        switch(mode_of_attack) {
+            case attack_mode.BASIC:
+                    strongest_pin.value = current_pin.game.armour;
+                break;
+            case attack_mode.TEIR_1:
+                    strongest_pin.value = this.GeneratorObject.FactorsObject.calc_power(strongest_pin.pin);
+                break;
+            default:
+                break;
+        }
+        for (let i = 0; i < pins.length; i++) {
+            let element = pins[i];
+            let element_value = 0; let strongest_pin_value = 0;
+            
+            switch(mode_of_attack) {
+                case attack_mode.BASIC:
+                    element_value = element.game.armour;
+                    strongest_pin_value = strongest_pin.value;
+                    
+                    break;
+                case attack_mode.TEIR_1:
+                    element_value = this.GeneratorObject.FactorsObject.calc_power(element.game.pin_id)
+                    strongest_pin_value = strongest_pin.value;
+                    break;
+                default:
+                    break;
+            }
+            
+            if (element.player.id != strongest_player && element_value > strongest_pin_value && pins_left > 0) {
+                
+                console.log("Fighting element", element.game.pin_id, element_value, strongest_pin.pin, strongest_pin.value)
+                let updated_value = parseFloat(element_value) - parseFloat(strongest_pin_value);
+                this.update_pin_arsenal(element.game.pin_id, updated_value, constants.DAMAGE, this.damage_by(strongest_pin.pin, constants.PIN));
+                this.lost(strongest_pin.pin, element.game.pin_id);
+                pins_left--;
+                strongest_pin.pin = element.game.pin_id;
+                strongest_pin.value = updated_value;
+                // console.log
+                strongest_player = element.player.id;
+                
+                
+            }
+            else if(element.player.id != strongest_player && element_value == strongest_pin_value) {
+                
+                if (strongest_player == undefined && pins_left > 0) {
+                    strongest_pin.pin = element.game.pin_id;
+                    if(mode_of_attack == attack_mode.BASIC) {
+                        strongest_pin.value = element.game.armour;
+                    }
+                    else {
+
+                        strongest_pin.value = this.GeneratorObject.FactorsObject.calc_power(element.game.pin_id);
+                    }
+                    strongest_player = element.player.id;
+                }
+                else if (pins_left > 0) {
+                    console.log("Fighting equal", element.game.pin_id, element_value, strongest_pin.pin, strongest_pin_value)
+                    this.lost(strongest_pin.pin, element.game.pin_id);
+                    this.lost(element.game.pin_id, strongest_pin.pin);
+                    pins_left--;
+                    pins_left--;
+                    // reset values
+                    strongest_pin.value = 0;
+                    strongest_pin.pin = undefined;
+                    strongest_player = undefined;
+                }
+                
+            }
+            else if (element.player.id != strongest_player && strongest_pin_value > element_value && pins_left > 0) {
+                console.log("Fighting strongest", element.game.pin_id, element_value, strongest_pin.pin, strongest_pin_value)
+                let updated_value = parseFloat(strongest_pin_value) - parseFloat(element_value);
+                // console.log("Updated Armour = ", updated_armour);
+                this.update_pin_arsenal(strongest_pin.pin, updated_value);
+                strongest_pin.value = updated_value;
+                this.lost(element.game.pin_id, strongest_pin.pin);
+                pins_left--;
+                // console.log
+            }
+        }
+        
+            return { strongest_pin: strongest_pin, strongest_player: strongest_player }
+    }
+
     damage_by(damage_by, type) {
         return { damage_by: damage_by, type:type }
     }
 
-    update_pin_armour(pin_id, armour_value, type=constants.DAMAGE, type_details=undefined) {
+    update_pin_arsenal(pin_id, value, type=constants.DAMAGE, type_details=undefined) {
+        //type_details = {damage_by,type}
         let current_pin = this.get(undefined, pin_id);
-        current_pin.game.armour = armour_value;
-        console.log("Updating armour", pin_id, armour_value);
-        if (type == constants.DAMAGE && armour_value == 0) {
+
+        switch(this.GeneratorObject.get_mode_of_attack()) {
+            case attack_mode.BASIC:
+                current_pin.game.armour = value;
+                console.log("Updating armour", pin_id, value);
+                
+                break;
+            case attack_mode.TEIR_1:
+                //reset pin factors
+                this.GeneratorObject.FactorsObject.convert_power_to_factors(pin_id, value)
+                break;
+            default:
+                break;
+        }
+
+        if (type == constants.DAMAGE && value == 0) {
             //pin was defeated
             if (type_details == undefined) {
                 type_details = { damage_by: undefined, type: undefined }
@@ -446,15 +567,15 @@ class Pins {
         switch(type) {
             case constants.PIN:
                 console.log(pin_id, "Lost to Pin ", lost_to);
-                this.update_pin_armour(pin_id, 0, constants.LOST);
+                this.update_pin_arsenal(pin_id, 0, constants.LOST);
                 break;
             case constants.WALL:
                 console.log(pin_id, "Lost to Wall ", lost_to);
-                this.update_pin_armour(pin_id, 0, constants.LOST);
+                this.update_pin_arsenal(pin_id, 0, constants.LOST);
                 break;
             case constants.TRAP:
                     console.log(pin_id, "Lost to Trap ", lost_to);
-                    this.update_pin_armour(pin_id, 0, constants.LOST);
+                    this.update_pin_arsenal(pin_id, 0, constants.LOST);
                     break;
             default:
                 break;

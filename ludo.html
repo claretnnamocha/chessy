@@ -94,6 +94,8 @@
         <div>
             <select id="log_type">
                 <option value="wall">wall</option>
+                <option value="block">block</option>
+                <option value="terrain">terrain</option>
                 <option value="pin">pin</option>
                 <option value="trap">trap</option>
                 <option value="*">all</option>
@@ -186,6 +188,8 @@
 <script src="scripts/ui.js"></script>
 <script src="scripts/points.js"></script>
 <script src="scripts/blocks.js"></script>
+<script src="scripts/factors.js"></script>
+<script src="scripts/timer_handler.js"></script>
 
 <!-- always import constants before sockets_handler -->
 <script src="scripts/constants.js"></script>
@@ -214,22 +218,7 @@ $(document).ready(function() {
 
 $("#log_board").click(()=>{
     let val = $("#log_type").val()
-    switch(val) {
-        case constants.WALL:
-            UIObject.get_logic_board(true, constants.WALL, BlocksObject);
-            break;
-        case constants.PIN:
-            UIObject.get_logic_board(true, constants.PIN, BlocksObject);
-            break;
-        case constants.ALL:
-            UIObject.get_logic_board(true, constants.ALL, BlocksObject);
-            break;
-        case constants.GENERATOR:
-            UIObject.get_logic_board(true, constants.GENERATOR, BlocksObject);
-            break;
-        default:
-            break;
-    }
+    UIObject.get_logic_board(true, val, BlocksObject);
 });
 
 $("#send_message").click(() => {

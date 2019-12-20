@@ -126,6 +126,36 @@ class UserInterface {
                 }
                 
                 break;
+        case constants.BLOCK:
+                if (log) {
+                    res = "";
+                    keys.forEach(key => {
+                        res += `------\nkey: ${key}, wall: ${JSON.stringify(BlocksObject.blocks[key])} \n`
+                    });
+                }
+                else {
+                    res = {};
+                    keys.forEach(key => {
+                        res[key] = BlocksObject.blocks[key];
+                    });
+                }
+                
+                break;
+            case constants.TERRAIN:
+                if (log) {
+                    res = "";
+                    keys.forEach(key => {
+                        res += `------\nkey: ${key}, wall: ${JSON.stringify(BlocksObject.blocks[key].game.terrain)} \n`
+                    });
+                }
+                else {
+                    res = {};
+                    keys.forEach(key => {
+                        res[key] = BlocksObject.blocks[key].game.terrain;
+                    });
+                }
+                
+                break;
         case constants.TRAP:
                 if (log) {
                     res = "";
@@ -378,6 +408,7 @@ class ui_move {
         //pin path clear default to Neutral
         let path = { clear: this.path_clear }
         let prev_base = undefined;
+        let block = undefined;
 
         let movement = setInterval(() => {
             //if game isnt ongoing stop interval
@@ -395,6 +426,30 @@ class ui_move {
             }
 
             current_pin = GeneratorObject.PinObject.get(undefined, pin_id);
+            console.log("UI PIN", current_pin, pin_id)
+            block = this.GeneratorObject.BlocksObject.get(current_pin.game.block);
+            if (this.GeneratorObject.get_mode_of_attack() != attack_mode.LUDO) {
+                if (block.game.terrain.active != Negative) {
+                    current_pin.game.factors.agility.rate = 10;
+                    /**
+                     * paused at testing time handler
+                     * next step: stopping pin on entry of terrain
+                     */
+
+                    // this.GeneratorObject.TimerHandlerObject.new_interval(player.id, current_pin.game.pin_id, () => {console.log("timer done")}, 10000, timer_type.terrain_stopped);
+
+                    // this.GeneratorObject.TimerHandlerObject.stop_timer(player.id, current_pin.game.pin_id, timer_type.terrain_stopped);
+                    // this.GeneratorObject.TimerHandlerObject.get_timer(player.id, current_pin.game.pin_id, timer_type.terrain_stopped);
+                }
+                else {
+                    current_pin.game.factors.agility.rate = 2;
+                }
+            }
+
+            if (current_pin.game.state == pin_state.dormant) {
+                clearInterval(movement);
+                return;
+            }
             
 
             if (current_pin.game.safe_zone.trigger == base + parseInt(point)) {

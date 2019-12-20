@@ -36,8 +36,17 @@ class Movement {
             return;
         }
 
+        let block = this.GeneratorObject.BlocksObject.get(active_pin.game.block);
         let next_block = this.GeneratorObject.BlocksObject.get_blocks_on_side(active_pin.game.block, side.RIGHT, 1);
-        console.log("Active pin state", active_pin.game.state);
+        console.log("Active pin state", active_pin.game.state, block.game.terrain.active, active_pin.game.block);
+        //if block's terrain is active reduce die
+        if (block.game.terrain.active != Negative) {
+            die = Math.floor(die/2);
+            if (die < 1){
+                die = 1;
+            }
+        } 
+
         if (active_pin.game.state == this.PinObject.pin_state.stopped) {
             let result = this.GeneratorObject.BlocksObject.check_path(next_block,undefined, active_pin.game.pin_id, 1);
             path_clear = result.clear;
@@ -65,6 +74,7 @@ class Movement {
         }
 
         if (active_pin.game.info.bases >= Math.floor(bases.length /sight)) {
+            //sight: 
             //check distance till pin is safe
             let distance = this.GeneratorObject.BlocksObject.distance_till_end_block(active_pin.game.pin_id);
             console.log("distance till stop", distance);

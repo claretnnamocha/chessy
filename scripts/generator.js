@@ -7,6 +7,8 @@ class Generator{
     UIObject = undefined;
     PointsObject = undefined;
     BlocksObject = undefined;
+    FactorsObject = undefined;
+    TimerHandlerObject = undefined;
 
     no_of_bases = undefined;
     no_per_base=undefined;
@@ -76,25 +78,16 @@ class Generator{
     getBlocksObject() {
         return this.BlocksObject;
     }
+    getFactorsObject() {
+        return this.FactorsObject;
+    }
+    getTimerHandlerObject() {
+        return this.TimerHandlerObject;
+    }
 
 
     init() {
         console.log("Generator initializing");
-        this.mode_of_attack = attack_mode.BASIC;
-        switch(this.mode_type) {
-            case mode.LUDO:
-                this.mode_of_attack = attack_mode.LUDO;
-                break;
-            case mode.PIN:
-                // 
-                break;
-            case mode.POINT:
-                // this.mode_of_attack = attack_mode.BASIC;
-                break;
-            default:
-                break;
-
-        }
         // on initialization create player and pins objects
         this.PlayerObject = new Players(this);
         this.PinObject = new Pins(this, this.no_of_bases, this.mode_type, this.nth_val, this.mode_of_attack);
@@ -104,6 +97,8 @@ class Generator{
         this.PointsObject = new Points(this);
         this.DiceObject = new Dice(this);
         this.BlocksObject = new Blocks(this);
+        this.FactorsObject = new Factor(this);
+        this.TimerHandlerObject = new TimerHandler(this);
         this.set_game_status(game_status.ONGOING);
         console.log("Generator initialized");
     }
@@ -126,6 +121,65 @@ class Generator{
 
     set_player_info(player_info) {
         this.player_info == player_info;
+    }
+
+    set_mode_of_attack(mode_of_attack) {
+        this.mode_of_attack = mode_of_attack;
+        switch(this.mode_type) {
+            case mode.LUDO:
+                this.mode_of_attack = attack_mode.LUDO;
+                break;
+            default:
+                break;
+
+        }
+    }
+
+    set_active_player(custom=undefined) {
+        let players = this.getPlayerObject().get_players();
+        let prev_player = (players[this.active_player]);
+        prev_player = this.PlayerObject.get(prev_player);
+        console.log("Prev Player ", prev_player)
+        if (custom != undefined) {
+            console.log("Setting Active player", custom);
+            this.active_player = custom;
+        }
+        else {
+            if (!this.get_local_play()) {
+                emit(1, { player_id: this.get_player() }, "M-SAP-");
+            }
+            
+            // console.log("setting active", players, this.active_player, Object.keys(players).length, (this.active_player >= Object.keys(players).length - 1));
+            if (this.active_player >= players.length - 1) {
+                // console.log("resetting active")
+                this.active_player = 0;
+            }
+            else {
+                this.active_player ++;
+            }
+            
+        } 
+
+        let player = players[this.active_player];
+        console.log(player, this.active_player);
+        player = this.PlayerObject.get(player);
+        
+        //testing
+        console.log("-----Next Player-----")
+        console.log("switching",players,player)
+        document.getElementById("player_value").innerHTML = "<div>Current player: " + player.info.name + " <span style='color: " + (player.game.pin).toString().split("_")[0] + "'>" + player.game.pin + "</span> ||| prev player:" + prev_player.info.name + " prev pin: <span style='color: " + (prev_player.game.pin).toString().split("_")[0] + "'>" + prev_player.game.pin + "</span></div>";
+        //remove ui reminants
+        $("#pins_value").children().remove();
+        ///testing
+    }
+
+    set_winner(player_id) {
+        this.winner = player_id;
+        this.set_game_status(game_status.ENDED);
+    }
+
+    set_game_status(status) {
+        this.game_status = status;
     }
 
     add_to_bases(data) {
@@ -168,55 +222,8 @@ class Generator{
         return this.active_player;
     }
 
-    set_active_player(custom=undefined) {
-        let players = this.getPlayerObject().get_players();
-        let prev_player = (players[this.active_player]);
-        prev_player = this.PlayerObject.get(prev_player);
-        console.log("Prev Player ", prev_player)
-        if (custom != undefined) {
-            console.log("Setting Active player", custom);
-            this.active_player = custom;
-        }
-        else {
-            if (!this.get_local_play()) {
-                emit(1, { player_id: this.get_player() }, "M-SAP-");
-            }
-            
-            // console.log("setting active", players, this.active_player, Object.keys(players).length, (this.active_player >= Object.keys(players).length - 1));
-            if (this.active_player >= players.length - 1) {
-                // console.log("resetting active")
-                this.active_player = 0;
-            }
-            else {
-                this.active_player ++;
-            }
-            
-        } 
-
-        let player = players[this.active_player];
-        console.log(player, this.active_player);
-        player = this.PlayerObject.get(player);
-        
-        //testing
-        console.log("-----Next Player-----")
-        console.log("switching",players,player)
-        document.getElementById("player_value").innerHTML = "<div>Current player: " + player.info.name + " <span style='color: " + (player.game.pin).toString().split("_")[0] + "'>" + player.game.pin + "</span> ||| prev player:" + prev_player.info.name + " prev pin: <span style='color: " + (prev_player.game.pin).toString().split("_")[0] + "'>" + prev_player.game.pin + "</span></div>";
-        //remove ui reminants
-        $("#pins_value").children().remove();
-        ///testing
-    }
-
     get_player() {
         return this.player_no;
-    }
-
-    set_winner(player_id) {
-        this.winner = player_id;
-        this.set_game_status(game_status.ENDED);
-    }
-
-    set_game_status(status) {
-        this.game_status = status;
     }
 
     get_game_status() {

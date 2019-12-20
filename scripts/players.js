@@ -24,7 +24,7 @@ class Players {
             case publish_action.player_create:
                     console.log("Player override", action, value)
                 // while (counter < value.len) {
-                   this.new(value.number, value.id, value.info, value.max_no, value.no_of_pins, value.base, value.pin );
+                   this.new(value.number, value.id, value.info, value.max_no, value.no_of_pins, value.base, value.pin, value.luck );
                 //    counter ++;
                 // }
                 break;
@@ -33,24 +33,25 @@ class Players {
         }
     }
     
-    new(number, id, info, max_no, no_of_pins=0, base, pin) {
+    new(number, id, info, max_no, no_of_pins=0, base, pin, luck=undefined) {
         
         //add new player
-        this.add(number, id, info, max_no, no_of_pins, base, pin);
+        this.add(number, id, info, max_no, no_of_pins, base, pin, luck);
     }
-    add(number, id, info, max_no, no_of_pins, base, pin) {
+    add(number, id, info, max_no, no_of_pins, base, pin, luck=undefined) {
         console.log("number ", number, id, max_no, no_of_pins, base, pin);
         //add new player data
         //max_no is the maxium number of players per game
+        luck = (luck!=undefined) ? luck : Math.floor(Math.random() * 10) + 1;
         if (Object.keys(this.players).length < max_no) {
-            this.players[number] = { id: number, number: id, info: info, game: { pin: pin, valid: Positive, points: info.game.points, saveable_point: 0 } }
+            this.players[number] = { id: number, number: id, info: info, game: { pin: pin, valid: Positive, points: info.game.points, saveable_point: 0, luck:luck } }
             //create pins for players
             this.GeneratorObject.PinObject.create_pins(this.get(number), no_of_pins, base);
             this.GeneratorObject.BlocksObject.assign_blocks(number, base);
             update_ui_points();
             //publish player
             if(this.GeneratorObject.get_player() == number) {
-                this.GeneratorObject.publish({number: number, id: id, info: info, max_no: max_no, no_of_pins: no_of_pins, base: base, pin: pin}, publish_action.player_create, publish_source.player)
+                this.GeneratorObject.publish({number: number, id: id, info: info, max_no: max_no, no_of_pins: no_of_pins, base: base, pin: pin, luck:luck }, publish_action.player_create, publish_source.player)
             } 
             console.log("Player " + info.name + " has joined the game.");
             this.GeneratorObject.UIObject.display_message("Player " + info.name + " has joined the game.");

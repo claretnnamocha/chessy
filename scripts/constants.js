@@ -19,7 +19,8 @@ messages = {
     "PIN_ON_BOARD": "Pin already on board.",
     "GAME_ENDED": "Game has ended.",
     "PIN_COMPLETED": "Active pin is has completed game play.",
-    "PURCHASE_BLOCK_FIRST": "Please purchase block to perform selected action."
+    "PURCHASE_BLOCK_FIRST": "Please purchase block to perform selected action.",
+    "NOT_MY_BLOCK": "Block not yours.",
 }
 
 constants = {
@@ -46,6 +47,8 @@ constants = {
     DAMAGE: 'damage',
     UPGRADE: 'upgrade',
     LOST: 'lost',
+    ACQUIRE: 'acquire',
+    TERRAIN: 'terrain'
 }
 
 mode = {
@@ -57,12 +60,13 @@ mode = {
 attack_mode = {
     LUDO: 0,
     BASIC: 1,
-    COMBO: 2
+    TEIR_1: 2
 }
 
 side = {
     LEFT: 0,
-    RIGHT: 1
+    RIGHT: 1,
+    BOTH: 2
 }
 
 game_status = {
@@ -131,12 +135,33 @@ let counter = 0;
 
 //player constants
 let player_counter = 0;
-let player_info = [
-    { name: "Mike Ade", age: "22", wins: 1, game: { points: 50 } },
-    { name: "Julia Thomas", age: "18", wins: 1, game: { points: 50 } },
-    { name: "James Darkyn", age: "23", wins: 3, game: { points: 50 } },
-    { name: "Silver Pulker", age: "28", wins: 8, game: { points: 50 } }
-];
+//formulae = ((NPB * 2) * (NOB/2)) + ((NPB * (NOB/2))/2)
+let agility = { value: ((19 * 2) * 2) + ((19 * 2)/2), rate: 2, default: 20 }
+let pin_factor = {
+    'red_pin0': { attack: 90, defense: 20, magic: 10, agility: agility },
+    'red_pin1': { attack: 100, defense: 25, magic: 20, agility: agility },
+    'red_pin2': { attack: 100, defense: 15, magic: 20, agility: agility },
+    'red_pin3': { attack: 95, defense: 20, magic: 20, agility: agility },
+    //blue pins
+    'blue_pin0': { attack: 10, defense: 120, magic: 30, agility: agility },
+    'blue_pin1': { attack: 25, defense: 90, magic: 35, agility: agility },
+    'blue_pin2': { attack: 15, defense: 95, magic: 30, agility: agility },
+    'blue_pin3': { attack: 20, defense: 130, magic: 40, agility: agility },
+    //green pins
+    'green_pin0': { attack: 60, defense: 60, magic: 20, agility: agility },
+    'green_pin1': { attack: 55, defense: 60, magic: 20, agility: agility },
+    'green_pin2': { attack: 65, defense: 50, magic: 10, agility: agility },
+    'green_pin3': { attack: 70, defense: 50, magic: 10, agility: agility },
+    //yellow pins
+    'yellow_pin0': { attack: 20, defense: 40, magic: 130, agility: agility },
+    'yellow_pin1': { attack: 15, defense: 30, magic: 120, agility: agility },
+    'yellow_pin2': { attack: 25, defense: 20, magic: 100, agility: agility },
+    'yellow_pin3': { attack: 30, defense: 20, magic: 130, agility: agility },
+}
+
+let timer_type = {
+    terrain_stopped: 0
+}
 
 
 
@@ -162,6 +187,7 @@ let BlocksObject = undefined;
 
 function init() {
     GeneratorObject.init();
+    GeneratorObject.set_mode_of_attack(attack_mode.TEIR_1)
     MovementObject = GeneratorObject.getMoveObject();
     UIObject = GeneratorObject.getUIObject();
     PlayerObject = GeneratorObject.getPlayerObject();
@@ -169,6 +195,8 @@ function init() {
     DiceObject = GeneratorObject.getDiceObject();
     PinObject = GeneratorObject.getPinObject();
     BlocksObject = GeneratorObject.getBlocksObject();
+    FactorObject = GeneratorObject.getFactorsObject();
+    // 
     console.log("loaded");
     GeneratorObject.BlocksObject.init_blocks(container);
     //

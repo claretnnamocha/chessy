@@ -7,12 +7,17 @@ class Blocks {
 
     blocks = {}
     public_blocks = []
+    terrain_blocks = {}
     //block info
     no_per_base=undefined;
     no_of_blocks = 6;
     no_of_SZ_blocks = 6;
     no_of_public_blocks = 0;
     block_tapped = 0;
+
+    //side
+    terrain_side_blocks_min = 2;
+
 
     wall_order = {
         allow: 0,
@@ -94,7 +99,10 @@ class Blocks {
                         { 
                             wall: {
                                 level: 0, owner: undefined, order: this.wall_order.stop 
-                               }, 
+                            },
+                            terrain: {
+                                active: Negative, valid: Negative, type: undefined
+                            },
                             active: Negative, trap: undefined, 
                             safe_zone: Positive
                             
@@ -107,7 +115,10 @@ class Blocks {
                     { 
                             wall: {
                                 level: 0, owner: undefined, order: this.wall_order.stop 
-                                }, 
+                            }, 
+                            terrain: {
+                                active: Negative, valid: Negative, type: undefined
+                            },
                             active: Negative, trap: undefined, safe_zone: Negative
                             
                         } 
@@ -218,16 +229,19 @@ class Blocks {
                 if (index <= -1) {
                     index = keys.length - 1;
                 }
+                // console.log("SIDE LEFT", index)
                 for (let i = index; i >= 0;) {
                     let current_block_id = keys[i];
+                    // console.log("current_block_id", current_block_id, ' i', i, ' counter', counter, nth_val)
                     //end loop if nth blocks has been gotten
-                    if (nth_val != 0 && counter == nth_val) break;
+                    if (nth_val != 0 && counter >= nth_val) break;
                     
                     //if nth val is supplied and at last block, continue getting other block
                     if ((nth_val != 0 && i == 0) || (ending_block != undefined && i == 0)) {
                         i = keys.length - 1;
                         blocks.push(keys[0]);
-                        counter++;
+                        counter++;i--;
+                        continue;
                     }
 
                     if (keys[i] != undefined) blocks.push(keys[i]);
@@ -238,19 +252,20 @@ class Blocks {
                 break;
             case side.RIGHT:
                     index = index + 1;
-                    console.log("side blocks index", index, " keys leng", keys.length, " block id", block_id);
+                    // console.log("side blocks index", index, " keys leng", keys.length, " block id", block_id);
                 if (index >= keys.length) {
                     index = 1;
                 }
                 let keys_last_index = keys.length - 1;
                 for (let i = index; i < keys.length;) {
                     let current_block_id = keys[i];
-                    if (nth_val != 0 && counter == nth_val) break;
+                    if (nth_val != 0 && counter >= nth_val) break;
 
                     if ((nth_val != 0 && (i == keys_last_index)) || (ending_block != undefined && i == 0)) {
                         i = 0;
                         blocks.push(keys[keys_last_index]);
-                        counter++;
+                        counter++;i++;
+                        continue;
                     }
                     
                     if (keys[i] != undefined) blocks.push(keys[i]);
@@ -263,20 +278,76 @@ class Blocks {
                 break;
         }
         
+        if (on_side == side.LEFT) {
+            blocks = blocks.reverse()
+        }
         if (blocks.length == 1) {
             blocks = blocks[0];
         }
         return blocks;
     }
 
+    make_terrain_checks(blocks, player_id) {
+        let counter = 0;
+        let terrain_side_blocks_min = this.get_terrain_side_blocks_min();
+        let terrain_start_at = [];
+        let temp = []
+        let made_changes = Negative;
+        for (let i = 0; i < blocks.length; i++) {
+            let block = this.get(blocks[i]);
+            if (block.game.owner == player_id) {
+                
+                
+                if (counter >= terrain_side_blocks_min) {
+                    made_changes = Positive;
+                    if (block.game.terrain.valid == Negative) {
+                        this.add_terrain_block(blocks[i], player_id);
+                        block.game.terrain.active = Neutral;
+                        this.UIObject.apply_css(blocks[i], undefined,{background: "grey"})
+                    }
+                }
+                else {
+                    
+                    //store block id for manipulation later
+                    temp.push(blocks[i]);
+                    if (made_changes != Positive) made_changes = Neutral;
+                }
+                counter++;
+            }
+            else {
+                
+                if (made_changes == Positive) {
+                    terrain_start_at= terrain_start_at.concat(temp);
+                    temp = [];
+                }
+                counter = 0;
+                made_changes = Negative;
+            }
+
+        }
+
+        //validate remaining blocks
+        for (let i = 0; i < terrain_start_at.length; i++) {
+            let block = this.get(terrain_start_at[i]);
+            if (block.game.terrain.valid == Negative) {
+                this.add_terrain_block(terrain_start_at[i], player_id)
+                this.UIObject.apply_css(blocks[i], undefined,{background: "grey"})
+                block.game.terrain.active = Neutral;
+
+            }
+        }
+        
+    }
+
     acquire_block(block_id, player_id, base, from_system=false) {
         //if base isn't players own, charge more
         let player = this.PlayerObject.get(player_id);
         let price = -1;
+        let terrain_side_blocks_min = this.get_terrain_side_blocks_min();
         
 
         if (this.blocks[block_id].game.owner == undefined) {
-            price = this.PointsObject.pricing.block.default * 2;
+            price = this.PointsObject.get_price(constants.BLOCK, constants.ACQUIRE);
         }
         else {
             return;
@@ -289,6 +360,14 @@ class Blocks {
         if (price > -1 && player.game.points >= price) {
             this.blocks[block_id].game.owner = player_id;
             this.PlayerObject.update_points(player_id, parseInt(player.game.points) - parseInt(price));
+            let blocks_on_sides = [];
+            blocks_on_sides = blocks_on_sides.concat(this.get_blocks_on_side(block_id, side.LEFT, terrain_side_blocks_min, player_id));
+            blocks_on_sides.push(block_id);
+            blocks_on_sides = blocks_on_sides.concat(this.get_blocks_on_side(block_id, side.RIGHT, terrain_side_blocks_min, player_id));
+            //make terrain checks
+            this.make_terrain_checks(blocks_on_sides, player_id)
+            
+
             console.log("block " + block_id + ". Owned by " + this.blocks[block_id].game.owner);
 
             if (!from_system && this.GeneratorObject.get_player() == player_id) {
@@ -320,6 +399,35 @@ class Blocks {
         }
     }
 
+    get_terrain_side_blocks_min() {
+        return this.terrain_side_blocks_min;
+    }
+
+    get_terrain_blocks(player_id=undefined) {
+        if (player_id != undefined) {
+            return this.terrain_blocks[player_id];
+        }
+        return this.terrain_blocks;
+    }
+
+    add_terrain_block(block_id, player_id) {
+        let block = this.get(block_id);
+        block.game.terrain.valid = Neutral;
+        let keys = Object.keys(this.get_terrain_blocks())
+        if (keys.indexOf(player_id) == -1) {
+            this.terrain_blocks[player_id] = { blocks: [block_id], active: Negative } ;
+        }
+        else {
+            this.terrain_blocks[player_id].blocks.push(block_id);
+        }
+    }
+
+    delete_from_terrain_blocks(block_id, player_id) {
+        let result = this.get_terrain_blocks(player_id);
+        let blocks = result.blocks;
+        result.blocks = blocks.filter(x => blocks[x] != block_id);
+
+    }
 
     get_blocks_by_base(base) {
         let blocks = [];
@@ -483,39 +591,6 @@ class Blocks {
 
     }
 
-    wall_check(block_id, pin_id) {
-        let result = Negative;
-        let block = this.get(block_id);
-        let current_pin = this.PinObject.get(undefined, pin_id);
-        let pin_state = this.PinObject.pin_state;
-        switch(this.GeneratorObject.mode_of_attack) {
-            case attack_mode.BASIC:
-                if (block.game.wall.level >  current_pin.game.armour) {
-                    console.log("wall is more powerful");
-                    this.PinObject.update_pin_state(pin_id, pin_state.stopped);
-                    // this.update_wall_level(block_id, (block.game.wall.level - current_pin.game.armour));
-                    // this.PinObject.lost(pin_id, block_id, constants.WALL);
-                    result = Negative;
-                } 
-                else if (block.game.wall.level <  current_pin.game.armour) {
-                    console.log("wall is less");
-                    this.PinObject.update_pin_armour(pin_id, (current_pin.game.armour - block.game.wall.level));
-                    this.destroy(block_id, pin_id, constants.BLOCK);
-                    result = Neutral;
-                    
-                }
-                else if (block.game.wall.level ==  current_pin.game.armour) {
-                    console.log("wall equal");
-                    this.PinObject.update_pin_state(pin_id, pin_state.stopped);
-                    result = Negative;
-                }
-                break;
-            default: break;
-        }
-        console.log("Wall Check Immediate res ", result);
-        return result;
-        
-    }
 
     get_pins_on_block(block_id, pin_id, player_id=undefined) {
         let current_pin = this.get(undefined,pin_id);
@@ -660,6 +735,40 @@ class Blocks {
     own_wall(block_id, player_id) {
         let block = this.get(block_id);
         block.game.wall.owner = player_id;
+    }
+    
+    wall_check(block_id, pin_id) {
+        let result = Negative;
+        let block = this.get(block_id);
+        let current_pin = this.PinObject.get(undefined, pin_id);
+        let pin_state = this.PinObject.pin_state;
+        switch(this.GeneratorObject.mode_of_attack) {
+            case attack_mode.BASIC:
+                if (block.game.wall.level >  current_pin.game.armour) {
+                    console.log("wall is more powerful");
+                    this.PinObject.update_pin_state(pin_id, pin_state.stopped);
+                    // this.update_wall_level(block_id, (block.game.wall.level - current_pin.game.armour));
+                    // this.PinObject.lost(pin_id, block_id, constants.WALL);
+                    result = Negative;
+                } 
+                else if (block.game.wall.level <  current_pin.game.armour) {
+                    console.log("wall is less");
+                    this.PinObject.update_pin_armour(pin_id, (current_pin.game.armour - block.game.wall.level));
+                    this.destroy(block_id, pin_id, constants.BLOCK);
+                    result = Neutral;
+                    
+                }
+                else if (block.game.wall.level ==  current_pin.game.armour) {
+                    console.log("wall equal");
+                    this.PinObject.update_pin_state(pin_id, pin_state.stopped);
+                    result = Negative;
+                }
+                break;
+            default: break;
+        }
+        console.log("Wall Check Immediate res ", result);
+        return result;
+        
     }
 
 }
