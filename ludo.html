@@ -3,6 +3,7 @@
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,9 +13,7 @@
         <link rel="stylesheet" href="">
         <style>
             .container{
-                
                 width: 100%;
-                
             }
             .box{
                 width:60px;
@@ -22,6 +21,7 @@
                 border: 2px solid #eee;
                 float: left;
                 margin: 5px;
+                position: relative;
             }
             .button{
                 clear: both;
@@ -32,8 +32,13 @@
                 border: 2px solid #fff;
                 border-radius: 50px;
                 background: red;
-                margin: 15px;
+                /* margin: 15px; */
+                top: 15px;
+                left: 15px;
+                right: 15px;
+                bottom: 15px;
                 position: absolute;
+                z-index: 99;
             }
             .blue_pin{
                 width: 30px;
@@ -41,8 +46,13 @@
                 border: 2px solid #fff;
                 border-radius: 50px;
                 background: blue;
-                margin: 15px;
+                /* margin: 15px; */
+                top: 15px;
+                left: 15px;
+                right: 15px;
+                bottom: 15px;
                 position: absolute;
+                z-index: 99;
             }
             .green_pin{
                 width: 30px;
@@ -50,8 +60,13 @@
                 border: 2px solid #fff;
                 border-radius: 50px;
                 background: green;
-                margin: 15px;
+                /* margin: 15px; */
+                top: 15px;
+                left: 15px;
+                right: 15px;
+                bottom: 15px;
                 position: absolute;
+                z-index: 99;
             }
             .yellow_pin{
                 width: 30px;
@@ -59,13 +74,35 @@
                 border: 2px solid #fff;
                 border-radius: 50px;
                 background: yellow;
-                margin: 15px;
+                /* margin: 15px; */
+                top: 15px;
+                left: 15px;
+                right: 15px;
+                bottom: 15px;
                 position: absolute;
+                z-index: 99;
             }
         </style>
     </head>
     <body>
+        <div id="player_value"></div>
         <span id="timer">Timer </span>
+        <div>
+            Chatbox <textarea id="message_input" rows="1" cols="30" type="text" placeholder="..." ></textarea>
+            <button id="send_message">send</button>
+        </span>
+        <div>
+            <select id="log_type">
+                <option value="wall">wall</option>
+                <option value="block">block</option>
+                <option value="terrain">terrain</option>
+                <option value="pin">pin</option>
+                <option value="trap">trap</option>
+                <option value="*">all</option>
+                <option value="generator">generator</option>
+            </select>
+            <button id="log_board">Log</button>
+        </div>
         <div id="points_v">Points</div>
         <div id="dice_value"></div>
         <div id="pins_value"></div>
@@ -86,106 +123,62 @@
                 <option value="trap">trap</option>
             </select>
             <button id="use_point" style="float: left;">Use Point</button>
+            <button id="skip_turn" style="float: left;">Skip Turn</button>
             <!-- <button id="roll2">Roll x2</button> -->
         </div>
+        
         <div style="clear: both;"></div>
+        
         <div class="container">
-            <div id="A1" class="box"></div>
-            <div id="A2" class="box"></div>
-            <div id="A3" class="box"></div>
-            <div id="A4" class="box"></div>
-            <div id="A5" class="box"></div>
-            <div id="A6" class="box"></div>
-            <div id="A7" class="box"></div>
-            <div id="A8" class="box"></div>
-            <div id="A9" class="box"></div>
-            <div id="A10" class="box"></div>
-            <div id="A11" class="box"></div>
-            <div id="A12" class="box"></div>
-            <div id="A13" class="box"></div>
-            <div id="A14" class="box"></div>
-            
-            <div style="clear: both"></div>
-            <div id="B1" class="box"></div>
-            <div id="B2" class="box"></div>
-            <div id="B3" class="box"></div>
-            <div id="B4" class="box"></div>
-            <div id="B5" class="box"></div>
-            <div id="B6" class="box"></div>
-            <div id="B7" class="box"></div>
-            <div id="B8" class="box"></div>
-            <div id="B9" class="box"></div>
-            <div id="B10" class="box"></div>
-            <div id="B11" class="box"></div>
-            <div id="B12" class="box"></div>
-            <div id="B13" class="box"></div>
-            <div id="B14" class="box"></div>
-
-            <div style="clear: both"></div>
-            <div id="C1" class="box"></div>
-            <div id="C2" class="box"></div>
-            <div id="C3" class="box"></div>
-            <div id="C4" class="box"></div>
-            <div id="C5" class="box"></div>
-            <div id="C6" class="box"></div>
-            <div id="C7" class="box"></div>
-            <div id="C8" class="box"></div>
-            <div id="C9" class="box"></div>
-            <div id="C10" class="box"></div>
-            <div id="C11" class="box"></div>
-            <div id="C12" class="box"></div>
-            <div id="C13" class="box"></div>
-            <div id="C14" class="box"></div>
-
-            <div style="clear: both"></div>
-            <div id="D1" class="box"></div>
-            <div id="D2" class="box"></div>
-            <div id="D3" class="box"></div>
-            <div id="D4" class="box"></div>
-            <div id="D5" class="box"></div>
-            <div id="D6" class="box"></div>
-            <div id="D7" class="box"></div>
-            <div id="D8" class="box"></div>
-            <div id="D9" class="box"></div>
-            <div id="D10" class="box"></div>
-            <div id="D11" class="box"></div>
-            <div id="D12" class="box"></div>
-            <div id="D13" class="box"></div>
-            <div id="D14" class="box"></div>
-            <div style="clear: both"></div>
         </div>
         
-        <div id="base_classes" style="position: relative;margin-top: 0px;">
-            <div id="red_pins" style="float: left">
-                <div class='red_pin' id="red_pin0" style="top: 0px;" onclick="pin_tapped(this)"></div>
-                <div class='red_pin' id="red_pin1" style="top: 50px;" onclick="pin_tapped(this)"></div>
-                <div class='red_pin' id="red_pin2" style="top: 100px;" onclick="pin_tapped(this)"></div>
-                <div class='red_pin' id="red_pin3" style="top: 150px;" onclick="pin_tapped(this)"></div>
+        <div style="clear: both;"></div>
+        <div style="position: relative;margin-top: 0px;">
+            <div id="base_classes" style="margin-top: 0px; float: left">
+                <div id="red_pins" style="float: left">
+                    <div class='red_pin' id="red_pin0" style="top: 0px;" onclick="pin_tapped(this)"></div>
+                    <div class='red_pin' id="red_pin1" style="top: 50px;" onclick="pin_tapped(this)"></div>
+                    <div class='red_pin' id="red_pin2" style="top: 100px;" onclick="pin_tapped(this)"></div>
+                    <div class='red_pin' id="red_pin3" style="top: 150px;" onclick="pin_tapped(this)"></div>
+                </div>
+                
+                <div id="blue_pins" style="float: left; margin-left: 50px;">
+                    <div class='blue_pin' id="blue_pin0" style="top: 0px; left: 50px;" onclick="pin_tapped(this)"></div>
+                    <div class='blue_pin' id="blue_pin1" style="top: 50px; left: 50px;" onclick="pin_tapped(this)"></div>
+                    <div class='blue_pin' id="blue_pin2" style="top: 100px; left: 50px;" onclick="pin_tapped(this)"></div>
+                    <div class='blue_pin' id="blue_pin3" style="top: 150px; left: 50px;" onclick="pin_tapped(this)"></div>
+                </div>
+                <div id="green_pins" style="float: left">
+                    <div class='green_pin' id="green_pin0" style="top: 0px; left: 100px;" onclick="pin_tapped(this)"></div>
+                    <div class='green_pin' id="green_pin1" style="top: 50px; left: 100px;" onclick="pin_tapped(this)"></div>
+                    <div class='green_pin' id="green_pin2" style="top: 100px; left: 100px;" onclick="pin_tapped(this)"></div>
+                    <div class='green_pin' id="green_pin3" style="top: 150px; left: 100px;" onclick="pin_tapped(this)"></div>
+                </div>
+                <div id="yellow_pins" style="float: left">
+                    <div class='yellow_pin' id="yellow_pin0"  style="top: 0px; left: 150px;" onclick="pin_tapped(this)"></div>
+                    <div class='yellow_pin' id="yellow_pin1" style="top: 50px; left: 150px;" onclick="pin_tapped(this)"></div>
+                    <div class='yellow_pin' id="yellow_pin2" style="top: 100px; left: 150px;" onclick="pin_tapped(this)"></div>
+                    <div class='yellow_pin' id="yellow_pin3" style="top: 150px; left: 150px;" onclick="pin_tapped(this)"></div>
+                </div>
             </div>
-            
-            <div id="blue_pins" style="float: left">
-                <div class='blue_pin' id="blue_pin4" style="top: 0px; left: 50px;" onclick="pin_tapped(this)"></div>
-                <div class='blue_pin' id="blue_pin5" style="top: 50px; left: 50px;" onclick="pin_tapped(this)"></div>
-                <div class='blue_pin' id="blue_pin6" style="top: 100px; left: 50px;" onclick="pin_tapped(this)"></div>
-                <div class='blue_pin' id="blue_pin7" style="top: 150px; left: 50px;" onclick="pin_tapped(this)"></div>
-            </div>
-            <div id="green_pins" style="float: left">
-                <div class='green_pin' id="green_pin8" style="top: 0px; left: 100px;" onclick="pin_tapped(this)"></div>
-                <div class='green_pin' id="green_pin9" style="top: 50px; left: 100px;" onclick="pin_tapped(this)"></div>
-                <div class='green_pin' id="green_pin10" style="top: 100px; left: 100px;" onclick="pin_tapped(this)"></div>
-                <div class='green_pin' id="green_pin11" style="top: 150px; left: 100px;" onclick="pin_tapped(this)"></div>
-            </div>
-            <div id="yellow_pins" style="float: left">
-                <div class='yellow_pin' id="yellow_pin12"  style="top: 0px; left: 150px;" onclick="pin_tapped(this)"></div>
-                <div class='yellow_pin' id="yellow_pin13" style="top: 50px; left: 150px;" onclick="pin_tapped(this)"></div>
-                <div class='yellow_pin' id="yellow_pin14" style="top: 100px; left: 150px;" onclick="pin_tapped(this)"></div>
-                <div class='yellow_pin' id="yellow_pin15" style="top: 150px; left: 150px;" onclick="pin_tapped(this)"></div>
+            <div style="margin-left: 200px; float: left;">
+                <div style=" width: 300px; height: 200px;overflow: auto; float: left;">
+                    <div>Game Messages</div>
+                    <div id="message_display"></div>
+                </div>
+                <div style=" width: 300px; height: 200px;overflow: auto; float: left;">
+                    <div>Chat</div>
+                    <div id="chat_message_display"></div>
+                </div>
+                
             </div>
         </div>
+        
         
 
     </body>
 </html>
+<script src="/socket.io/socket.io.js"></script>
 <script src="scripts/jquery-3.4.1.js"></script>
 <script src="scripts/generator.js"></script>
 <script src="scripts/move.js"></script>
@@ -194,22 +187,19 @@
 <script src="scripts/dice.js"></script>
 <script src="scripts/ui.js"></script>
 <script src="scripts/points.js"></script>
-<!-- always import constants last -->
+<script src="scripts/blocks.js"></script>
+<script src="scripts/factors.js"></script>
+<script src="scripts/timer_handler.js"></script>
+
+<!-- always import constants before sockets_handler -->
 <script src="scripts/constants.js"></script>
+<script src="scripts/sockets_handler.js"></script>
 <script>
+
 $(document).ready(function() {
+    //currently : pins are nested in blocks and pin trigger also triggers blocks to activate
     let container = $(".container");
-    for (let i = 0; i < container.children().length; i++) {
-        // container.children()[i].attr("id");
-        // console.log(("#" + container.children()[i].id))
-        if (container.children()[i].id != '') {
-            $("#" + container.children()[i].id).on('click', () => {
-                // alert("")
-                GeneratorObject.activate_block(container.children()[i].id, player_id);
-            })
-            // console.log()
-        } 
-    }
+    
 
     let action_type = $("#type");
     let block_action = $("#block_action");
@@ -225,26 +215,79 @@ $(document).ready(function() {
     
 });
 
-$("#new_player").click(function(){
-    //add a new player
-    let new_player_data = player_info[player_counter];
-    player_id = player_counter;
-    
-    // add players
-    
-    playerObject.new(player_counter, player_id, new_player_data , bases.length, pins_per_player, bases[player_counter], base_pins[player_counter])
-    //add a new pin for the player
-    // pn1 = new Pins(pl1.get(player_id));
-    player_counter++;   
+
+$("#log_board").click(()=>{
+    let val = $("#log_type").val()
+    UIObject.get_logic_board(true, val, BlocksObject);
 });
 
+$("#send_message").click(() => {
+    let message_input = $("#message_input");
+    let player = PlayerObject.get(GeneratorObject.get_player());
+    if (player != undefined) {
+        emit(GeneratorObject.get_player(), { message: message_input.val(), name: player.info.name }, "chat-");
+        message_input.val("");
+    }
+
+    
+});
+
+$("#skip_turn").click(() => {
+    if (GeneratorObject.get_active_player() != GeneratorObject.get_player()) {
+        UIObject.display_message(messages.INVALID_ACTION, Negative, false);
+        return;
+    }
+    DiceObject.empty_dice();
+    // GeneratorObject.set_active_player();
+});
+
+$("#new_player").click(function(){
+    // console.log("Distance ", GeneratorObject.BlocksObject.distance_between_blocks("D1", "A2"));
+    // console.log("Point ",25%13, ((25)/13))
+
+    console.log("new player clicked", GeneratorObject.get_player())
+    if (GeneratorObject.get_player() != undefined) {
+        UIObject.display_message(messages.INVALID_ACTION, Negative, false);
+        return;
+    }
+
+    //add a new player
+
+    console.log("Emitting new visitor")
+    socket.emit("new_visitor", { id: unique_id });
+      
+});
+
+function new_player(player_info, player_counter, player_id) {
+    console.log(player_info, player_counter, player_id);
+    let new_player_data = player_info;
+    // player_id = player_counter;
+    
+    
+
+    PlayerObject.new(player_counter, player_id, new_player_data , bases.length, pins_per_player, bases[player_counter], base_pins[player_counter])
+    
+    //add a new pin for the player
+    // pn1 = new Pins(pl1.get(player_id));
+    // player_counter++; 
+}
+
 function pin_tapped(pin=undefined, source=constants.HTML, pin_id=undefined) {
-    player_id = GeneratorObject.get_active_player();
+    
+    player_id = GeneratorObject.get_player();
+    
     let prev_color = undefined;
+    let current_pin = undefined;
     //activate pin
     switch(source) {
         case constants.HTML:
             prev_color = pin.style.background;
+            current_pin = GeneratorObject.PinObject.get(undefined, pin.id);
+            console.log("Current PIN", current_pin);
+            if (current_pin == null || ( current_pin.player.id != GeneratorObject.get_player())) {
+                UIObject.display_message(messages.INVALID_ACTION, Negative, false);
+                return;
+            }
             GeneratorObject.PinObject.activate(pin.id, undefined, player_id);
             pin.style.background = "purple";
             
@@ -256,6 +299,11 @@ function pin_tapped(pin=undefined, source=constants.HTML, pin_id=undefined) {
             // console.log("Pin Id", pin_id);
             // prev_color = $(append_attr(pin_id)).css("background");
             prev_color = document.getElementById(pin_id).style.background;
+            current_pin = GeneratorObject.PinObject.get(undefined, pin_id);
+            if (current_pin == null || ( current_pin.player.id != GeneratorObject.get_player())) {
+                UIObject.display_message(messages.INVALID_ACTION, Negative, false);
+                return;
+            }
             GeneratorObject.PinObject.activate(pin_id,undefined, player_id);
             $(append_attr(pin_id)).css("background", "purple");
             
@@ -264,6 +312,7 @@ function pin_tapped(pin=undefined, source=constants.HTML, pin_id=undefined) {
             }, 1000);
             break;
     }
+
     
     
     // let parent_id = GeneratorObject.UIObject.get_pin_parent(pin.id);
@@ -274,53 +323,26 @@ $("#roll").click(function(){
     
     //testing start
     player_id = GeneratorObject.get_active_player();
+    console.log(player_id, "player id", PlayerObject)
+    if (player_id != GeneratorObject.get_player()) {
+        UIObject.display_message(messages.INVALID_ACTION, Negative, false);
+        return;
+    }
+    
     // console.log("GEN PREV NEXT", GeneratorObject.get_blocks_on_side("A4",side.LEFT, 0, player_id ));
-    let p_player = playerObject.get(player_id);
+    let p_player = PlayerObject.get(player_id);
+    console.log(p_player, PlayerObject, player_id);
 
     switch(p_player.game.valid) {
-        case Postive:
+        case Positive:
             let all_dice = [];
             let dice_ids = {};
-            p_player.game.saveable_point = 0;
-            UIObject.display_message(p_player.info.name + " roll the dice");
-            for (let i = 0; i < 5; i++) {
-                
+            DiceObject.prepare(player_id);
+            UIObject.display_message(p_player.info.name + " roll the dice", undefined, true);
+            for (let i = 0; i < 2; i++) {
                 let result = DiceObject.roll(undefined, player_id);
-                // console.log(result.dice);
-                // all_dice += dice;
-                if (all_dice.length == 0) {
-                    all_dice = (result.dice);
-                }
-                else {
-                    all_dice = all_dice.concat(result.dice);
-                    // console.log(all_dice);
-                }
-                
-                p_player.game.saveable_point ++;
                 if (!result.Turn) break;
-
             }
-            // 
-            // replicate on ui
-            all_dice.forEach(element => {
-                dice_ids[element.title] = element.val;
-                let button = document.createElement("button");
-                button.onclick = () => {
-                    console.log(JSON.stringify(dice_ids))
-                    die_action(player_id, element);
-                    delete dice_ids[element.title];
-                    // all_dice = all_dice.splice(all_dice.indexOf[element],1);
-                    // console.log(JSON.stringify(dice_ids))   
-                    if (Object.keys(dice_ids).length == 0) {
-                        GeneratorObject.set_active_player();
-                        console.log("-----Next Player-----")
-                    }
-                    // button.remove();
-                };
-                button.innerText = element.val;
-                button.setAttribute("id", element.title);
-                UIObject.replicate("#dice_value", button);
-            });
             
             
             break;
@@ -337,8 +359,10 @@ $("#use_point").click(function() {
     
     // let p_player = playerObject.get(player_id);
     let point_type = $("#type").val();
+    let player_id = GeneratorObject.get_player();
+    
     if (point_type == constants.PIN) {
-        let active_pin = GeneratorObject.PinObject.get(player_id);
+        let active_pin = PinObject.get(player_id);
         if (active_pin != null) {
             PointsObject.use(point_type, "armour", player_id, active_pin.game.pin_id);
         }
@@ -348,9 +372,11 @@ $("#use_point").click(function() {
         
     }
     else if (point_type == constants.BLOCK) {
-        let block_action = $("#block_type").val();
-        let active_block = GeneratorObject.get();
+        console.log("Use Point");
+        let block_action = $("#block_action").val();
+        let active_block = BlocksObject.get();
         if (active_block != undefined) {
+            console.log("Active Block [UP]");
             PointsObject.use(point_type, block_action, player_id, undefined, active_block.id);
         }
         
@@ -359,19 +385,6 @@ $("#use_point").click(function() {
     
 });
 
-// function activate_pin(pin, active_pin) {
-//     // console.log("ACtivatepin", pin, active_pin)
-    
-//     try {
-//         // alt: pin == pin_class, AC_P.G.PID == pin_id
-//         setPinInfo(pin, active_pin.game.pin_id);
-//     }
-//     catch(error) {
-//         console.log(error)
-//         UIObject.display_message(messages.ACTIVATE_PIN)
-//         return;
-//     }
-// }
 
 function remove_from_base(pin_id, active_pin, send_to_board=Negative) {
     if (active_pin != null) {
@@ -382,7 +395,8 @@ function remove_from_base(pin_id, active_pin, send_to_board=Negative) {
         {   
             let pin_html = getPinInfo(active_pin.player, active_pin).pin_html;
             
-            GeneratorObject.UIObject.remove_from_base(parent_id, pin_id, send_to_board, pin_html, bases, GeneratorObject.blocks);
+            GeneratorObject.UIObject.remove_from_base(parent_id, pin_id, send_to_board, pin_html, GeneratorObject.BlocksObject.blocks, bases);
+            return true;
         }
     }
 
@@ -392,7 +406,7 @@ function remove_from_base(pin_id, active_pin, send_to_board=Negative) {
 function update_ui_points() {
     // testing
     let ddict = {}
-    let keys = Object.keys(PlayerObject.players);
+    let keys = PlayerObject.get_players();
     keys.forEach(element => {
         // console.log(PlayerObject.players[element].game.points)
         ddict[element] = PlayerObject.players[element].game.points
@@ -402,40 +416,31 @@ function update_ui_points() {
 }
 
 function some_error(player_id) {
-UIObject.display_message("an error occured");
+    alert("an error occured")
+// UIObject.display_message();
 
 }
 
 function die_action(player_id, die) {
-    // document.getElementById("dice_value").innerHTML = "Dice: Die 1: " + die +  " ||player id: " + player_id;
-    // if (player_id == 0) {
-    //     die = 15; 0 = 1;
-    // }
-    // else if (player_id == 1) {
-    //     die = 1; 0 = 1;
-    // }
+    //unused
     let p_player = PlayerObject.get(player_id);
     let current_die = die;
     die = die.val;
     let max_secs = 6;
-    let counter = setInterval(() => {
-        document.getElementById("timer").innerHTML = "Timer: " + max_secs + "s";
-        max_secs--;
-    }, 1000);
 
     setTimeout(() => {
-        clearInterval(counter);
+        // clearInterval(counter);
         
         //testing
         let action = $("#action").val();
         //testing/
         switch(action) {
             case constants.MOVE: 
-                console.log("moving");
+                console.log("moving", player_id, GeneratorObject.get_player());
                 let active_pin = GeneratorObject.PinObject.get(player_id);
                 if (active_pin == null || active_pin == undefined) {
                     some_error(player_id);
-                    break;
+                    return;
                 }
                 let PinInfo = getPinInfo(p_player, active_pin);
                 let pin = PinInfo.pin;
@@ -447,29 +452,43 @@ function die_action(player_id, die) {
                     // break;
                 }
                 // activate_pin(pin, active_pin);
-                remove_from_base(pin_id, active_pin);
-                let holder = container.children().children(append_attr( pin_id));
+                remove_from_base(pin_id, active_pin, Positive);
+                console.log("Past moving for base");
+                // break;
+                // return;
+                // let holder = container.children().children(append_attr( pin_id));
+                let holder = active_pin.game.block;
                 let default_pin = active_pin.game.start_block;
                 
                 // let current_box_id = holder.length == 0 ? default_pin : holder.parent().attr("id").replace("#");
                 
                 // current box on the board logic
-                let current = holder.length == 0 ? default_pin : holder.parent().attr("id").replace("#");
-                let current_base = (current == default_pin) ? bases[p_player.number] : holder.parent().attr("id").replace("#").substring(0,1);
+                //.length == 0 ? default_pin : holder.parent().attr("id").replace("#")
+                let current = holder;
+                // let current_base = (current == default_pin) ? bases[p_player.number] : holder.parent().attr("id").replace("#").substring(0,1);
+                let current_base = (current == default_pin) ? bases[p_player.id] : holder.substring(0,1);
                 
-                let res = MovementObject.move(current, die, 0, current_base, no_per_base, bases, GeneratorObject.blocks, p_player);
+                let res = MovementObject.move(current, die, current_base, BlocksObject.no_per_base, bases, active_pin, GeneratorObject.BlocksObject.blocks, p_player);
+                console.log("Movement ", res);
+                if (res == undefined) {
+                    //function was stopped
+                    return;
+                }
                 current = res.point;
                 current_base = res.base;
-                UIObject.ui_move(pin_html, pin_id, container, res.starting_point, (die), no_per_base, res.starting_base, bases, GeneratorObject, p_player)
+                let ui_move_object = new ui_move(GeneratorObject, die, counter, res.path_clear);
+                ui_move_object.move(pin_html, pin_id, container, res.starting_point, res.starting_base, bases, res.box_id, GeneratorObject, p_player);
+                counter++;
                 //remove die
-                UIObject.force_remove(current_die.title);
+                
+                DiceObject.remove_from_dice(current_die.title);
                 break;
             case constants.REMOVE:
                 if (allowed_no.includes(die)) {
                     let active_pin = GeneratorObject.PinObject.get(player_id);
                     if (active_pin == null || active_pin == undefined) {
-                        some_error(player_id);
-                        break;
+                        // some_error(player_id);
+                        return;
                     }
                     let PinInfo = getPinInfo(p_player, active_pin);
                     let pin = PinInfo.pin;
@@ -478,9 +497,14 @@ function die_action(player_id, die) {
                     // alert("No six" + pin_id);
                     if (active_pin.game.position == PinObject.pin_position.base) {
 
-                        remove_from_base(pin_id, active_pin, Postive);
+                        let res = remove_from_base(pin_id, active_pin, Positive);
+                        if (res == undefined) {
+                            //function was stopped
+                            return;
+                        }
                         //remove die
-                        UIObject.force_remove(current_die.title);
+                        // UIObject.force_remove(current_die.title);
+                        DiceObject.remove_from_dice(current_die.title);
                     }
                     else {
                         UIObject.display_message(messages.PIN_ON_BOARD);
@@ -496,15 +520,16 @@ function die_action(player_id, die) {
                 break;
             case constants.SAVE:
                 let pins_on_board = PinObject.get_pins_on_board(p_player.id);
-                if (!pins_on_board.empty && p_player.game.saveable_point > 0 ) {
+                if (!pins_on_board.empty && p_player.game.saveable_point != 0 ) {
                     p_player.game.points = p_player.game.points + (die);
                     p_player.game.saveable_point -=1;
                     
                     //testing start
                     update_ui_points();
                     //testing end 
+
                     //remove die
-                    UIObject.force_remove(current_die.title);
+                    DiceObject.remove_from_dice(current_die.title);
                 }
                 else if(pins_on_board.empty) {
                     UIObject.display_message(messages.REQUIRED_PIN_ON_BOARD)
@@ -545,17 +570,15 @@ function append_attr(value, type="id") {
 
 //function to update pin info
 function getPinInfo(player, active_pin, attr=false){
-    let pin = (attr) ? append_attr(UIObject.pin_classes[player.number], "class") : UIObject.pin_classes[player.number];
+    let pin = (attr) ? append_attr(UIObject.pin_classes[player.id], "class") : UIObject.pin_classes[player.id];
     let pin_id = (attr) ? append_attr(active_pin.game.pin_id) : active_pin.game.pin_id;
-    let pin_html = UIObject.create_element("div",{ "z-index": 2, "position": "absolute" },()=> {
-        
+    let pin_html = UIObject.create_element("div",{ "z-index": 2, "position": "absolute" },undefined, "", pin_id, pin);
+    pin_html.addEventListener("click", event => {
         pin_tapped(undefined, constants.GENERATED, pin_id);
-
-    }, "", pin_id, pin);
+        event.stopPropagation();
+    })
     // console.log("pin info",pin_html)
     return { pin: pin, pin_id: pin_id, pin_html: pin_html }
 }
-
-
 
 </script>

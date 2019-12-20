@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script></script>
+  </head>
+  <body>
+    <ul id="messages"></ul>
+    <span id="status">False</span>
+    <button id="emitter" onclick="emitter()">Destroy Server</button>
+    
+  </body>
+</html>
+<!--  -->
+<script src="/scripts/jquery-3.4.1.js"></script>
+<script>
+    // alert("")
+    // let sockets = [];
+    let socket = io();
+    // const socket = openSocket("http://localhost:4000")
+    function emitter() {
+        // alert("");
+        console.log("emit");
+        
+        // sockets.push(socket);
+        socket.emit("reset_game", { value: 1 });
+    }
+    let status_span = document.getElementById('status')
+    socket.on("reset_status", data => { 
+      status_span.innerText = data;
+      setTimeout(() => {
+        status_span.innerText = false;
+      }, 2000);
+    })
+    
+    
+</script>
