@@ -180,12 +180,14 @@ class UserInterface {
         if (log) console.log("Board:\n", res);
         return log;
     }
+
     update_pins(curent_point, old_point, player, blocks, bases, current_base, old_base) {
         let old_box_id =  old_base + old_point;
         let box_id = (current_base + curent_point);
         // console.log("UPDATE PINS", curent_point, old_point, player, blocks, bases, current_base, old_base);
         this.PinObject.update_pins(old_box_id, box_id, player, blocks, bases);
     }
+
     remove_from_base(parent_id, pin_id, send_to_board=Negative, pin_html=undefined, blocks=undefined, bases=undefined) {
         
         let _pin_id = this.append_attr(pin_id);
@@ -223,6 +225,7 @@ class UserInterface {
         let positions = this.GeneratorObject.PinObject.pin_position;
         this.GeneratorObject.PinObject.update_position(pin_id, positions.board);
     }
+
     add_to_base(pin_id, type="id") {
         let _pin_id = this.append_attr(pin_id);
         let current_pin = this.GeneratorObject.PinObject.get(undefined, pin_id);
@@ -239,11 +242,13 @@ class UserInterface {
         }
 
     }
+
     get_pin_parent(pin_id) {
         pin_id = this.append_attr(pin_id);
 
         return $(pin_id).parent().attr("id");
     }
+
     append_attr(value, type="id") {
         if (type === "id") {
             if (!value.toString().startsWith("#")) {
@@ -252,6 +257,7 @@ class UserInterface {
             return value
         }
     }
+
     force_remove(value, type="id", pin_id=undefined) {
         let element = undefined;
         let active_pin = (pin_id != undefined) ? this.PinObject.get(undefined, pin_id) : null;
@@ -287,15 +293,18 @@ class UserInterface {
                 break;
         }
     }
+
     remove_pin(id, id_type="id", parent, parent_type, active_pin) {
         let element = $(this.append_attr(parent, parent_type)).children(this.append_attr(active_pin.game.block)).children(this.append_attr(id, id_type));
         if (element != undefined || element != null) {
             element.remove();
         } 
     }
+
     replicate(render_on, html_content) {
         $(render_on).append(html_content);
     }
+
     return_html(id=undefined, class_name=undefined, element=undefined, content=undefined) {
         let html_content = undefined;
         if (id != undefined && class_name !=undefined) {
@@ -313,6 +322,7 @@ class UserInterface {
         // console.log(html_content)
         return html_content;
     }
+
     create_element(element_type="button", styling={}, action=undefined, inner_text, element_id=undefined,element_class=undefined) {
         let element = document.createElement(element_type);
         if (action != undefined) {
@@ -334,6 +344,7 @@ class UserInterface {
         // console.log("returning element ", element_type, element)
         return element;
     }
+    
     apply_css(_element, type=constants.ID, styling={}, element_type=constants.HTML) {
         let element = (element_type == constants.GENERATED) ? _element : undefined;
         if (element_type == constants.HTML) {

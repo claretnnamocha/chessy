@@ -35,12 +35,14 @@ class Movement {
         if (!this.GeneratorObject.make_checks(active_pin)) {
             return;
         }
-
+        
         let block = this.GeneratorObject.BlocksObject.get(active_pin.game.block);
+        
         let next_block = this.GeneratorObject.BlocksObject.get_blocks_on_side(active_pin.game.block, side.RIGHT, 1);
+        
         console.log("Active pin state", active_pin.game.state, block.game.terrain.active, active_pin.game.block);
-        //if block's terrain is active reduce die
-        if (block.game.terrain.active != Negative) {
+        //if block's terrain is active reduce die and terrain is not mine
+        if (block.game.terrain.active != Negative && block.game.owner !== active_pin.player.id) {
             die = Math.floor(die/2);
             if (die < 1){
                 die = 1;

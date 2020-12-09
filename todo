@@ -1,0 +1,6 @@
+!- remove old comments ?
+
+- on new payer join, game moves not complete (first player already made moves)
+- die value not moving in accordingly (&)
+- Terrain activation (e.g a5 then a7 then a6 activates a4, a5, a7)
+- Active pin state undefined 0 B6

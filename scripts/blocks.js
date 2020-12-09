@@ -62,13 +62,9 @@ class Blocks {
     }
 
     create_block(data) {
-        // Generator.blocks.push(info.id);
-        
         //create block and assign value
         this.blocks[data.id] = data;
         
-        // console.log(JSON.stringify(Generator.blocks));
-        // this.blocks.[info.id] = info 
     }
 
     get_blocks(include_safe=Negative) {
@@ -137,7 +133,6 @@ class Blocks {
                                 this.activate_block(id, this.GeneratorObject.get_player());
                             }
                             else if (this.block_tapped == 2) {
-                                // alert("double tap")
                                 this.acquire_block(id, this.GeneratorObject.get_player(), bases[base]);
                                 this.activate_block(id, this.GeneratorObject.get_player());
                             }
@@ -207,9 +202,8 @@ class Blocks {
     }
 
     remove_pin_from_block(block_id, pin_id) {
-        // console.log("Before ", JSON.stringify(this.blocks[block_id].pins), "pin_id", pin_id, block_id);
+        //remove said pin from block
         this.blocks[block_id].pins = this.blocks[block_id].pins.filter(pin => pin.game.pin_id !=pin_id );
-        // console.log("After ", JSON.stringify(this.blocks[block_id].pins))
     }
 
     get_blocks_on_side( block_id, on_side=side.RIGHT, nth_val = 0, player_id, ending_block=undefined, include_safe=false) {
@@ -229,10 +223,10 @@ class Blocks {
                 if (index <= -1) {
                     index = keys.length - 1;
                 }
-                // console.log("SIDE LEFT", index)
+                
                 for (let i = index; i >= 0;) {
                     let current_block_id = keys[i];
-                    // console.log("current_block_id", current_block_id, ' i', i, ' counter', counter, nth_val)
+                    
                     //end loop if nth blocks has been gotten
                     if (nth_val != 0 && counter >= nth_val) break;
                     
@@ -252,7 +246,6 @@ class Blocks {
                 break;
             case side.RIGHT:
                     index = index + 1;
-                    // console.log("side blocks index", index, " keys leng", keys.length, " block id", block_id);
                 if (index >= keys.length) {
                     index = 1;
                 }

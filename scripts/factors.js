@@ -25,13 +25,11 @@ class Factor {
             default:
                 break;
         }
-        console.log("Pin id",pin_id," POWER ", power, " Factors", factors)
         return power;
     }
 
     convert_power_to_factors(pin_id, power=0, auto_update=true) {
         let current_pin = this.GeneratorObject.PinObject.get(undefined, pin_id);
-        console.log("PIN", current_pin)
         let percentage = { }
         let result = { }
         let total = 0;
@@ -44,11 +42,9 @@ class Factor {
         //get percentage value for each factor
         this.factors.forEach(factor => {
             percentage[factor] = (percentage[factor]/total) * 100;
-            console.log(pin_id, factor, " percentage :",(percentage[factor]/total) * 100,percentage[factor], total )
         });
         //divide power by percentages
         this.factors.forEach(factor => {
-            console.log(pin_id, factor, " power :",(percentage[factor]/100) * power,percentage[factor], power )
             result[factor] = (percentage[factor]/100) * power;
             
         });
@@ -73,7 +69,6 @@ class Factor {
             }, 15000);
         }
         current_pin.game.factors.agility.value = updated_agility;
-        console.log(pin_id, " Agility:", current_pin.game.factors.agility.value, " Rate",current_pin.game.factors.agility.rate)
     }
 
     increase_agility(pin_id, value=undefined){
@@ -82,6 +77,5 @@ class Factor {
             value = current_pin.game.factors.agility.default;
         }
         current_pin.game.factors.agility.value = value;
-        console.log(pin_id, " Agility:", current_pin.game.factors.agility.value, " Rate",current_pin.game.factors.agility.rate)
     }
 }

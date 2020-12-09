@@ -199,7 +199,6 @@
 $(document).ready(function() {
     //currently : pins are nested in blocks and pin trigger also triggers blocks to activate
     let container = $(".container");
-    
 
     let action_type = $("#type");
     let block_action = $("#block_action");
@@ -242,17 +241,14 @@ $("#skip_turn").click(() => {
 });
 
 $("#new_player").click(function(){
-    // console.log("Distance ", GeneratorObject.BlocksObject.distance_between_blocks("D1", "A2"));
-    // console.log("Point ",25%13, ((25)/13))
-
-    console.log("new player clicked", GeneratorObject.get_player())
+    console.log("new player clicked", GeneratorObject.get_player(), "unique_id", unique_id);
+    // if no player in this instance, create new player for game
     if (GeneratorObject.get_player() != undefined) {
         UIObject.display_message(messages.INVALID_ACTION, Negative, false);
         return;
     }
 
     //add a new player
-
     console.log("Emitting new visitor")
     socket.emit("new_visitor", { id: unique_id });
       

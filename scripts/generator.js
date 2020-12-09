@@ -111,7 +111,7 @@ class Generator{
     }
 
     set_starting_player(player_id) {
-        console.log("Starting player ", player_id);
+        //set active player
         this.active_player = player_id;
     }
 
@@ -141,6 +141,7 @@ class Generator{
         prev_player = this.PlayerObject.get(prev_player);
         console.log("Prev Player ", prev_player)
         if (custom != undefined) {
+            //received next player from server
             console.log("Setting Active player", custom);
             this.active_player = custom;
         }

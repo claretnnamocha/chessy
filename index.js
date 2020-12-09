@@ -95,14 +95,16 @@ app.get("/contact", function (req, res) {
     // res.render('contact');
 })
 
+
+
 io.on('connection', function(socket) {
-    // console.log("a user  connected");
+    console.log("a user  connected");
 
     socket.on("new_visitor", user => {
+        //new user joined game
         console.log("new visitor", user);
         socket.user = user;
         emitNewPlayer(user.id);
-        // emitVisitors();
     });
 
     socket.on(child_channel, data => {
@@ -128,8 +130,15 @@ io.on('connection', function(socket) {
         player_counter = 0;
         active_player = 0;
         emitted_data = [];
+		console.log("reset game", data);
         io.emit('reset_status', true);
     });
+	
+	socket.on("connect_f", (data) => {
+		console.log("connect", data);
+	   io.emit('send_data', data);
+	});
+	
 
     socket.on(chat_channel, data => {
         console.log(chat_channel, data)

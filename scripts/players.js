@@ -17,12 +17,11 @@ class Players {
     }
     
     override(action, value) {
-        console.log("Player override", action, value)
+        //recreate multi 'player' actions
         let player = this.get(value.player_id);
         let counter = 0;
         switch (action) {
             case publish_action.player_create:
-                    console.log("Player override", action, value)
                 // while (counter < value.len) {
                    this.new(value.number, value.id, value.info, value.max_no, value.no_of_pins, value.base, value.pin, value.luck );
                 //    counter ++;
@@ -39,7 +38,6 @@ class Players {
         this.add(number, id, info, max_no, no_of_pins, base, pin, luck);
     }
     add(number, id, info, max_no, no_of_pins, base, pin, luck=undefined) {
-        console.log("number ", number, id, max_no, no_of_pins, base, pin);
         //add new player data
         //max_no is the maxium number of players per game
         luck = (luck!=undefined) ? luck : Math.floor(Math.random() * 10) + 1;

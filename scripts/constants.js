@@ -202,9 +202,6 @@ function init() {
     //
 
     for (let i = 0; i < container.children().length; i++) {
-        // container.children()[i].attr("id");
-        // console.log(("#" + container.children()[i].id))
-        // container.children()[i].text();
         
         //div [clear:both] has not id
         if (container.children()[i].id != '') {
